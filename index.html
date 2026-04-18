@@ -902,13 +902,19 @@ window.initiateCall = async () => {
     return;
   }
 
+  console.log('Initiating call to:', recipientUser.name);
   showToast('Initialisation de l\'appel…');
 
   try {
+    console.log('Requesting audio access...');
     localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    console.log('Audio access granted');
+    
     const callRef = push(ref(db, `calls`));
     currentCallId = callRef.key;
     currentCallUserId = recipientId;
+
+    console.log('Creating call record:', currentCallId);
 
     // Display the recipient's name in the active call panel
     document.getElementById('active-call-name').textContent = recipientUser.name;
@@ -923,6 +929,8 @@ window.initiateCall = async () => {
       iceSerial: 0
     });
 
+    console.log('Call record created, setting up peer connection');
+
     // Setup WebRTC peer connection
     setupPeerConnection(true);
     listenForCallSignals();
@@ -933,7 +941,7 @@ window.initiateCall = async () => {
     showToast('Appel en cours…');
   } catch (e) {
     console.error('Error initiating call:', e);
-    showToast('❌ Accès au micro refusé');
+    showToast('❌ Accès au micro refusé: ' + e.message);
     endCall();
   }
 };
@@ -941,9 +949,14 @@ window.initiateCall = async () => {
 window.answerCall = async () => {
   if (!incomingCallId) return;
 
+  console.log('Answering call:', incomingCallId);
+
   const callRef = ref(db, `calls/${incomingCallId}`);
   try {
+    console.log('Requesting audio access...');
     localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    console.log('Audio access granted for answer');
+    
     currentCallId = incomingCallId;
     
     const callSnap = await get(callRef);
@@ -954,8 +967,10 @@ window.answerCall = async () => {
     const callerName = (allUsers[callData.callerId] || {}).name || callData.callerName;
     document.getElementById('active-call-name').textContent = callerName;
 
+    console.log('Updating call status to accepted');
     await update(callRef, { status: 'accepted', respondedAt: Date.now() });
 
+    console.log('Setting up peer connection as callee');
     setupPeerConnection(false);
     listenForCallSignals();
     
@@ -965,7 +980,7 @@ window.answerCall = async () => {
     showToast('Appel connecté');
   } catch (e) {
     console.error('Error answering call:', e);
-    showToast('❌ Erreur lors de la connexion');
+    showToast('❌ Erreur lors de la connexion: ' + e.message);
     rejectCall();
   }
 };
@@ -1026,7 +1041,7 @@ function setupPeerConnection(isCaller) {
     if (event.candidate && currentCallId) {
       try {
         iceSerialNum++;
-        const candidateRef = child(ref(db, `calls/${currentCallId}/iceCandidates`), `candidate_${iceSerialNum}`);
+        const candidateRef = ref(db, `calls/${currentCallId}/iceCandidates/candidate_${iceSerialNum}`);
         await set(candidateRef, {
           candidate: event.candidate.candidate,
           sdpMLineIndex: event.candidate.sdpMLineIndex,
@@ -1055,23 +1070,26 @@ function setupPeerConnection(isCaller) {
   if (isCaller) {
     peerConnection.createOffer()
       .then(offer => peerConnection.setLocalDescription(offer))
-      .then(() => {
-        update(ref(db, `calls/${currentCallId}`), {
-          offer: {
-            type: 'offer',
-            sdp: peerConnection.localDescription.sdp
-          }
-        });
+      .then(async () => {
+        if (currentCallId) {
+          await update(ref(db, `calls/${currentCallId}`), {
+            offer: {
+              type: 'offer',
+              sdp: peerConnection.localDescription.sdp
+            }
+          });
+        }
       })
       .catch(e => console.error('Error creating offer:', e));
   } else {
     // Answer will be created when offer is received
     const callRef = ref(db, `calls/${currentCallId}`);
-    onValue(callRef, async (snapshot) => {
+    const unsubscribe = onValue(callRef, async (snapshot) => {
       const callData = snapshot.val();
-      if (callData?.offer && !peerConnection.remoteDescription) {
+      if (callData?.offer && peerConnection && !peerConnection.remoteDescription) {
         try {
-          await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.offer));
+          console.log('Callee: received offer, creating answer');
+          await peerConnection.setRemoteDescription(callData.offer);
           const answer = await peerConnection.createAnswer();
           await peerConnection.setLocalDescription(answer);
           await update(callRef, {
@@ -1080,6 +1098,8 @@ function setupPeerConnection(isCaller) {
               sdp: peerConnection.localDescription.sdp
             }
           });
+          console.log('Callee: answer sent');
+          unsubscribe();
         } catch (e) {
           console.error('Error creating answer:', e);
         }
@@ -1096,19 +1116,31 @@ function listenForCallSignals() {
   // Listen for offer/answer
   onValue(callRef, async (snapshot) => {
     const callData = snapshot.val();
-    if (!callData) return;
+    if (!callData || !peerConnection) return;
 
-    // If caller, wait for answer
-    if (peerConnection.signalingState === 'stable' && callData.answer && !peerConnection.remoteDescription) {
+    // Handle offer (for callee)
+    if (callData.offer && peerConnection.signalingState === 'stable' && !peerConnection.remoteDescription) {
       try {
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(callData.answer));
+        console.log('Setting remote offer:', callData.offer);
+        await peerConnection.setRemoteDescription(callData.offer);
       } catch (e) {
-        console.error('Error setting remote description:', e);
+        console.error('Error setting remote offer:', e);
+      }
+    }
+
+    // Handle answer (for caller)
+    if (callData.answer && peerConnection.signalingState !== 'stable' && !peerConnection.remoteDescription) {
+      try {
+        console.log('Setting remote answer:', callData.answer);
+        await peerConnection.setRemoteDescription(callData.answer);
+      } catch (e) {
+        console.error('Error setting remote answer:', e);
       }
     }
 
     // Listen for call termination
     if (callData.status === 'ended' && peerConnection?.connectionState !== 'closed') {
+      console.log('Call ended by other user');
       stopCallCleanup();
     }
   });
@@ -1117,9 +1149,14 @@ function listenForCallSignals() {
   const candidatesRef = ref(db, `calls/${currentCallId}/iceCandidates`);
   onChildAdded(candidatesRef, async (snapshot) => {
     const candidate = snapshot.val();
-    if (peerConnection && candidate) {
+    if (peerConnection && candidate && candidate.candidate) {
       try {
-        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log('Adding ICE candidate');
+        await peerConnection.addIceCandidate(new RTCIceCandidate({
+          candidate: candidate.candidate,
+          sdpMLineIndex: candidate.sdpMLineIndex,
+          sdpMid: candidate.sdpMid
+        }));
       } catch (e) {
         console.error('Error adding ICE candidate:', e);
       }
@@ -1818,6 +1855,19 @@ function showToast(msg){ const t=document.getElementById('toast'); t.textContent
 
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
 window.addEventListener('resize',()=>{ if(!isMobile()){ document.getElementById('sidebar').classList.remove('slide-out'); document.getElementById('chat-area').classList.remove('slide-in'); } });
+
+/* ══ DEBUG HELPER ══ */
+window.DEBUG_CALL_STATUS = () => {
+  console.log('=== AUDIO CALL STATUS ===');
+  console.log('Current User:', currentUser);
+  console.log('Current Call ID:', currentCallId);
+  console.log('Current Conversation:', currentConvId);
+  console.log('Incoming Call ID:', incomingCallId);
+  console.log('Local Stream:', localStream);
+  console.log('Peer Connection State:', peerConnection?.connectionState);
+  console.log('All Users:', allUsers);
+  console.log('Call Listeners:', callListeners);
+};
 </script>
 </body>
 </html>
