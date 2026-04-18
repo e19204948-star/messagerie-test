@@ -444,15 +444,19 @@
   .call-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 24px; padding: 40px 20px; text-align: center; max-width: 320px; animation: slideUp .3s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
   .call-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); margin: 0 auto 16px; font-size: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; }
   .call-name { font-size: 1.4rem; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-  .call-status { font-size: 0.9rem; color: var(--text2); margin-bottom: 24px; animation: pulse 2s infinite; }
+  .call-status { font-size: 0.9rem; color: var(--text2); margin-bottom: 12px; animation: pulse 2s infinite; min-height: 1.3em; }
+  .call-quality { font-size: 0.85rem; color: var(--text2); margin-bottom: 24px; min-height: 1.2em; }
   .call-direction { display: flex; gap: 16px; justify-content: center; margin-bottom: 24px; }
   .call-accept-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--success); border: none; color: white; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; transition: all .2s; box-shadow: 0 4px 16px rgba(52,211,153,0.3); }
   .call-accept-btn:hover { background: #2dd4bf; box-shadow: 0 6px 20px rgba(52,211,153,0.4); transform: scale(1.05); }
+  .call-accept-btn:active { transform: scale(0.95); }
   .call-reject-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--danger); border: none; color: white; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; transition: all .2s; box-shadow: 0 4px 16px rgba(248,113,113,0.3); }
   .call-reject-btn:hover { background: #f87171; box-shadow: 0 6px 20px rgba(248,113,113,0.4); transform: scale(1.05); }
+  .call-reject-btn:active { transform: scale(0.95); }
   .call-controls { display: flex; gap: 12px; justify-content: center; }
   .call-mute-btn, .call-end-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
   .call-mute-btn:hover, .call-end-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+  .call-mute-btn:active, .call-end-btn:active { transform: scale(0.9); }
   .call-mute-btn.muted { background: var(--danger); border-color: var(--danger); color: white; }
   .call-end-btn { background: var(--danger); border-color: var(--danger); color: white; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
@@ -496,6 +500,13 @@
     .install-actions { width:100%; }
     .btn-install, .btn-dismiss { flex:1; text-align:center; }
     .voice-msg { min-width:160px; }
+    .call-panel { padding: 30px 16px; max-width: calc(100vw - 32px); }
+    .call-avatar { width: 60px; height: 60px; font-size: 24px; margin-bottom: 12px; }
+    .call-name { font-size: 1.2rem; margin-bottom: 8px; }
+    .call-status, .call-quality { font-size: 0.8rem; }
+    .call-direction { gap: 12px; margin-bottom: 16px; }
+    .call-accept-btn, .call-reject-btn { width: 48px; height: 48px; font-size: 20px; }
+    .call-mute-btn, .call-end-btn { width: 40px; height: 40px; font-size: 16px; }
   }
 
   .chat-back { display:none; }
@@ -1342,6 +1353,11 @@ async function sendFile(file) {
    📞 AUDIO CALLING — WEBRTC 
 ════════════════════════════════════ */
 
+let callStartTime = null;
+let callDurationInterval = null;
+let missedCalls = JSON.parse(localStorage.getItem('missedCalls') || '[]');
+let iceCandidatesListeners = {};
+
 async function getLocalStream() {
   if(localStream) return;
   try {
@@ -1371,27 +1387,140 @@ async function createPeerConnection(userId) {
     console.log('📞 Remote audio received from', userId);
     remoteStreams[userId] = event.streams[0];
     playRemoteAudio(userId, event.streams[0]);
+    updateCallQuality('excellent');
   };
   
-  // Handle ICE candidates
+  // Handle ICE candidates - properly store them
   pc.onicecandidate = (event) => {
     if(event.candidate) {
-      set(ref(db, `calls/${currentCallUser}/${userId}/candidates/${Date.now()}`), {
-        candidate: JSON.stringify(event.candidate)
-      });
+      const candidateId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      set(ref(db, `calls/${currentUser.id}/${userId}/candidates/${candidateId}`), {
+        candidate: JSON.stringify(event.candidate),
+        timestamp: Date.now()
+      }).catch(e => console.error('Error storing candidate:', e));
     }
   };
   
-  // Monitor connection state
+  // Monitor connection state with quality tracking
   pc.onconnectionstatechange = () => {
-    console.log('🔌 Connection state:', pc.connectionState);
-    if(pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+    const state = pc.connectionState;
+    console.log('🔌 Connection state:', state);
+    updateConnectionStatus(state);
+    
+    if(state === 'connected' || state === 'completed') {
+      startCallDurationTimer();
+      playCallSound('connected');
+    } else if(state === 'disconnected') {
+      updateCallQuality('poor');
+    } else if(state === 'failed') {
+      console.error('Connection failed');
+      showToast('❌ Connexion perdue');
+      setTimeout(() => endCall(), 1500);
+    } else if(state === 'closed') {
       endCall();
     }
   };
   
+  // Monitor ICE connection state for better detection
+  pc.oniceconnectionstatechange = () => {
+    console.log('ICE State:', pc.iceConnectionState);
+    if(pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+      updateCallQuality('poor');
+    }
+  };
+  
+  // Listen for incoming ICE candidates from remote peer
+  if(!iceCandidatesListeners[userId]) {
+    iceCandidatesListeners[userId] = onValue(ref(db, `calls/${userId}/${currentUser.id}/candidates`), snap => {
+      const candidates = snap.val() || {};
+      for(const [id, data] of Object.entries(candidates)) {
+        if(data && data.candidate) {
+          try {
+            const candidate = JSON.parse(data.candidate);
+            pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => {
+              console.warn('Error adding ICE candidate:', e.message);
+            });
+          } catch(e) {
+            console.error('Error parsing ICE candidate:', e);
+          }
+        }
+      }
+    });
+  }
+  
   peerConnections[userId] = pc;
   return pc;
+}
+
+function startCallDurationTimer() {
+  if(!callStartTime) callStartTime = Date.now();
+  if(callDurationInterval) clearInterval(callDurationInterval);
+  
+  callDurationInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+    const statusEl = document.querySelector('.call-status');
+    if(statusEl) {
+      statusEl.textContent = `Durée: ${formatDuration(elapsed)}`;
+    }
+  }, 500);
+}
+
+function updateConnectionStatus(state) {
+  const statusEl = document.querySelector('.call-status');
+  if(!statusEl) return;
+  
+  const stateMessages = {
+    'connecting': 'Connexion en cours...',
+    'connected': 'Connecté',
+    'completed': 'Appel actif',
+    'disconnected': 'Déconnexion...',
+    'failed': 'Erreur de connexion',
+    'closed': 'Fermé'
+  };
+  
+  const message = stateMessages[state] || state;
+  if(statusEl.textContent !== message) {
+    statusEl.textContent = message;
+  }
+}
+
+function updateCallQuality(quality) {
+  const qualityEl = document.querySelector('.call-quality');
+  if(!qualityEl) return;
+  
+  const qualityMap = {
+    'excellent': { icon: '📶', text: 'Excellent' },
+    'good': { icon: '📶', text: 'Bon' },
+    'poor': { icon: '⚠️', text: 'Faible' },
+    'verypoor': { icon: '📍', text: 'Très faible' }
+  };
+  
+  const q = qualityMap[quality] || qualityMap.good;
+  qualityEl.textContent = `${q.icon} ${q.text}`;
+}
+
+function playCallSound(type) {
+  // Create a simple beep sound using Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  
+  if(type === 'incoming') {
+    oscillator.frequency.value = 800;
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + 0.5);
+  } else if(type === 'connected') {
+    oscillator.frequency.value = 1200;
+    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + 0.15);
+  }
 }
 
 window.initiateCall = async function() {
@@ -1420,6 +1549,7 @@ window.initiateCall = async function() {
   try {
     callState = 'calling';
     currentCallUser = otherUserId;
+    callStartTime = Date.now();
     
     // Get microphone access
     await getLocalStream();
@@ -1428,50 +1558,82 @@ window.initiateCall = async function() {
     const pc = await createPeerConnection(otherUserId);
     
     // Create and send offer
-    const offer = await pc.createOffer();
+    const offer = await pc.createOffer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: false
+    });
     await pc.setLocalDescription(offer);
     
-    // Send call signal through Firebase
-    await set(ref(db, `calls/${currentUser.id}/${otherUserId}`), {
-      type: 'offer',
-      offer: JSON.stringify(offer),
-      from: currentUser.id,
-      fromName: currentUser.name,
-      timestamp: Date.now(),
-      status: 'calling'
-    });
+    // Send call signal through Firebase with retry logic
+    const maxRetries = 3;
+    let retries = 0;
+    let callSent = false;
     
-    showToast(`📞 Appel en cours vers ${allUsers[otherUserId]?.name || 'l\'utilisateur'}…`);
+    while(retries < maxRetries && !callSent) {
+      try {
+        await set(ref(db, `calls/${currentUser.id}/${otherUserId}`), {
+          type: 'offer',
+          offer: JSON.stringify(offer),
+          from: currentUser.id,
+          fromName: currentUser.name,
+          timestamp: Date.now(),
+          status: 'calling'
+        });
+        callSent = true;
+        playCallSound('outgoing');
+      } catch(e) {
+        retries++;
+        if(retries < maxRetries) {
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+    }
+    
+    if(!callSent) {
+      throw new Error('Impossible d\'établir l\'appel');
+    }
+    
+    const targetUserName = allUsers[otherUserId]?.name || 'l\'utilisateur';
+    showToast(`📞 Appel en cours vers ${targetUserName}…`);
     showCallUI(otherUserId, 'outgoing');
     
     // Timeout after 30 seconds
     callTimeout = setTimeout(() => {
       if(callState === 'calling') {
         showToast('❌ Appel non répondu');
+        addMissedCall(otherUserId, 'missed_outgoing', targetUserName);
         window.endCall();
       }
     }, 30000);
     
   } catch(e) {
     console.error('Call error:', e);
-    showToast('❌ Erreur lors de l\'appel');
+    showToast('❌ Erreur lors de l\'appel: ' + e.message);
     callState = 'idle';
+    currentCallUser = null;
   }
 }
 
 window.handleIncomingCall = async function(fromUserId, callData) {
   if(callState && callState !== 'idle') {
-    // Busy - reject
-    await set(ref(db, `calls/${fromUserId}/${currentUser.id}`), {
-      type: 'rejected',
-      reason: 'user_busy',
-      timestamp: Date.now()
-    });
+    // Busy - reject and record as missed
+    try {
+      await set(ref(db, `calls/${fromUserId}/${currentUser.id}`), {
+        type: 'rejected',
+        reason: 'user_busy',
+        timestamp: Date.now()
+      });
+      const senderName = allUsers[fromUserId]?.name || 'Utilisateur';
+      addMissedCall(fromUserId, 'rejected_busy', senderName);
+    } catch(e) {
+      console.error('Error rejecting call:', e);
+    }
     return;
   }
   
   callState = 'incoming';
   currentCallUser = fromUserId;
+  callStartTime = Date.now();
   
   try {
     await getLocalStream();
@@ -1480,7 +1642,10 @@ window.handleIncomingCall = async function(fromUserId, callData) {
     const offer = JSON.parse(callData.offer);
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
     
-    const answer = await pc.createAnswer();
+    const answer = await pc.createAnswer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: false
+    });
     await pc.setLocalDescription(answer);
     
     await set(ref(db, `calls/${currentUser.id}/${fromUserId}`), {
@@ -1492,15 +1657,32 @@ window.handleIncomingCall = async function(fromUserId, callData) {
     });
     
     callState = 'connected';
+    playCallSound('incoming');
     showToast('✅ Appel connecté');
     showCallUI(fromUserId, 'incoming');
+    startCallDurationTimer();
     
   } catch(e) {
     console.error('Answer error:', e);
-    showToast('❌ Erreur de connexion');
+    showToast('❌ Erreur de connexion: ' + e.message);
+    const senderName = allUsers[fromUserId]?.name || 'Utilisateur';
+    addMissedCall(fromUserId, 'connection_error', senderName);
     window.endCall();
   }
 };
+
+function addMissedCall(userId, type, userName) {
+  const missedCall = {
+    userId,
+    userName,
+    type, // 'missed_outgoing', 'rejected_busy', 'connection_error', 'declined'
+    timestamp: Date.now()
+  };
+  missedCalls.unshift(missedCall);
+  if(missedCalls.length > 50) missedCalls.pop(); // Keep last 50
+  localStorage.setItem('missedCalls', JSON.stringify(missedCalls));
+  console.log('Missed call recorded:', missedCall);
+}
 
 window.handleCallAnswer = async function(toUserId, answerData) {
   const pc = peerConnections[toUserId];
@@ -1536,6 +1718,7 @@ function showCallUI(userId, direction) {
   const nameEl = overlay.querySelector('.call-name');
   const statusEl = overlay.querySelector('.call-status');
   const directionEl = overlay.querySelector('.call-direction');
+  const qualityEl = overlay.querySelector('.call-quality') || createQualityIndicator(overlay);
   
   avatar.textContent = userName[0].toUpperCase();
   nameEl.textContent = userName;
@@ -1543,6 +1726,24 @@ function showCallUI(userId, direction) {
   directionEl.style.display = direction === 'incoming' ? 'flex' : 'none';
   
   overlay.classList.add('visible');
+}
+
+function createQualityIndicator(overlay) {
+  const qualityEl = document.createElement('div');
+  qualityEl.className = 'call-quality';
+  qualityEl.style.cssText = `
+    font-size: 0.85rem;
+    color: var(--text2);
+    margin-top: 12px;
+    text-align: center;
+  `;
+  qualityEl.textContent = '📶 Bon';
+  
+  const statusEl = overlay.querySelector('.call-status');
+  if(statusEl && statusEl.parentNode) {
+    statusEl.parentNode.insertBefore(qualityEl, statusEl.nextSibling);
+  }
+  return qualityEl;
 }
 
 function createCallOverlay() {
@@ -1553,6 +1754,7 @@ function createCallOverlay() {
       <div class="call-avatar" id="call-avatar"></div>
       <div class="call-name" id="call-name"></div>
       <div class="call-status"></div>
+      <div class="call-quality"></div>
       <div class="call-direction">
         <button class="call-accept-btn" onclick="acceptCall()" title="Accepter">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -1583,19 +1785,31 @@ function createCallOverlay() {
 }
 
 window.acceptCall = async () => {
-  if(callState !== 'incoming') return;
+  if(callState !== 'incoming') {
+    console.warn('Cannot accept call - not in incoming state');
+    return;
+  }
   callState = 'connected';
   showToast('✅ Appel accepté');
+  startCallDurationTimer();
 };
 
 window.rejectCall = async () => {
   if(!currentCallUser) return;
-  await set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), {
-    type: 'rejected',
-    timestamp: Date.now()
-  });
+  try {
+    await set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), {
+      type: 'rejected',
+      reason: 'declined',
+      timestamp: Date.now()
+    });
+    const callerName = allUsers[currentCallUser]?.name || 'Utilisateur';
+    addMissedCall(currentCallUser, 'declined', callerName);
+    showToast('Appel refusé');
+  } catch(e) {
+    console.error('Error rejecting call:', e);
+    showToast('❌ Erreur lors du refus');
+  }
   endCall();
-  showToast('Appel refusé');
 };
 
 window.toggleMute = () => {
@@ -1605,28 +1819,52 @@ window.toggleMute = () => {
     track.enabled = !track.enabled;
   });
   const btn = document.querySelector('.call-mute-btn');
-  if(btn) btn.classList.toggle('muted');
+  if(btn) {
+    btn.classList.toggle('muted');
+    btn.title = isMuted ? 'Muet' : 'Actif';
+  }
 };
 
 window.endCall = () => {
   if(callTimeout) clearTimeout(callTimeout);
+  if(callDurationInterval) clearInterval(callDurationInterval);
+  
   if(currentCallUser) {
     set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), {
       type: 'ended',
-      timestamp: Date.now()
-    });
+      timestamp: Date.now(),
+      duration: Math.floor((Date.now() - callStartTime) / 1000) || 0
+    }).catch(e => console.error('Error sending end signal:', e));
   }
+  
+  // Remove ICE candidates listeners
+  for(const [userId, unsubscribe] of Object.entries(iceCandidatesListeners)) {
+    if(typeof unsubscribe === 'function') {
+      unsubscribe();
+    }
+  }
+  iceCandidatesListeners = {};
   
   // Close peer connections
   for(const [userId, pc] of Object.entries(peerConnections)) {
-    pc.close();
+    try {
+      pc.close();
+    } catch(e) {
+      console.error('Error closing peer connection:', e);
+    }
   }
   peerConnections = {};
   remoteStreams = {};
   
   // Stop local stream
   if(localStream) {
-    localStream.getTracks().forEach(t => t.stop());
+    localStream.getTracks().forEach(t => {
+      try {
+        t.stop();
+      } catch(e) {
+        console.error('Error stopping track:', e);
+      }
+    });
     localStream = null;
   }
   
@@ -1635,20 +1873,46 @@ window.endCall = () => {
   
   callState = 'idle';
   currentCallUser = null;
+  callStartTime = null;
+  
   const overlay = document.getElementById('call-overlay');
   if(overlay) overlay.classList.remove('visible');
 };
 
-// Listen for incoming calls
+// Listen for incoming calls and call events
 function setupCallListener() {
+  let lastProcessedOffers = {};
+  
   onValue(ref(db, `calls/${currentUser.id}`), snap => {
-    const callsData = snap.val() || {};
-    for(const [fromUserId, callData] of Object.entries(callsData)) {
-      if(callData && typeof callData === 'object' && !Array.isArray(callData)) {
-        if(callData.type === 'offer' && callData.status === 'calling') {
-          window.handleIncomingCall(fromUserId, callData);
-        } else if(callData.type === 'answer' && callData.status === 'connected') {
-          window.handleCallAnswer(fromUserId, callData);
+    const callsData = snap.val();
+    if(!callsData) return;
+    
+    for(const [fromUserId, userCallData] of Object.entries(callsData)) {
+      if(!userCallData || typeof userCallData !== 'object' || Array.isArray(userCallData)) {
+        continue;
+      }
+      
+      // Handle incoming offers (incoming call)
+      if(userCallData.type === 'offer' && userCallData.status === 'calling') {
+        const offerId = `${fromUserId}_${userCallData.timestamp}`;
+        if(!lastProcessedOffers[offerId]) {
+          lastProcessedOffers[offerId] = true;
+          console.log('📞 Incoming call from', fromUserId);
+          window.handleIncomingCall(fromUserId, userCallData);
+        }
+      } 
+      // Handle call answers
+      else if(userCallData.type === 'answer' && userCallData.status === 'connected') {
+        if(callState === 'calling' && currentCallUser === fromUserId) {
+          console.log('📞 Call answered by', fromUserId);
+          window.handleCallAnswer(fromUserId, userCallData);
+        }
+      }
+      // Handle call end/rejection events
+      else if(userCallData.type === 'rejected' || userCallData.type === 'ended') {
+        if(callState !== 'idle') {
+          console.log('Call ended/rejected by', fromUserId);
+          endCall();
         }
       }
     }
