@@ -647,11 +647,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getDatabase, ref, set, get, push, onValue, off,
-  serverTimestamp, query, orderByChild, onChildAdded, update
+  query, orderByChild, onChildAdded, update
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import {
-  getStorage, ref as sRef, uploadBytes, getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAuto-generated-placeholder",
@@ -664,47 +661,59 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const storage = getStorage(app);
+const db  = getDatabase(app);
+
+/* ══ CONSTANTES ══ */
+const FILE_SIZE_LIMIT  = 500 * 1024;   // 500 Ko max fichier
+const VOICE_SIZE_LIMIT = 700 * 1024;   // ~700 Ko ≈ 30–40 sec webm/opus
+
+/* ══ BASE64 HELPER ══ */
+function blobToDataURL(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 
 /* ══ STATE ══ */
-let currentUser = null;
-let allUsers = {};
+let currentUser   = null;
+let allUsers      = {};
 let conversations = {};
 let currentConvId = null;
-let msgListener = null;
-let currentTab = 'all';
-let pendingFiles = [];
+let msgListener   = null;
+let currentTab    = 'all';
+let pendingFiles  = [];
 
-/* ════════════════════════════════
-   🎙️ VOICE RECORDING STATE
-════════════════════════════════ */
-let mediaRecorder = null;
-let audioChunks = [];
-let recordingStream = null;
-let recStartTime = null;
+/* ══ VOICE RECORDING STATE ══ */
+let mediaRecorder    = null;
+let audioChunks      = [];
+let recordingStream  = null;
+let recStartTime     = null;
 let recTimerInterval = null;
-let recAnimInterval = null;
-let recAudioContext = null;
-let recAnalyser = null;
-let recBars = [];
-let isRecording = false;
+let recAnimInterval  = null;
+let recAudioContext  = null;
+let recAnalyser      = null;
+let recBars          = [];
+let isRecording      = false;
+let pendingVoiceMime = '';
 
 /* ══ PWA ══ */
 let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
+window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault(); deferredPrompt = e;
-  const banner = document.getElementById('install-banner');
-  const sideBtn = document.getElementById('sidebar-install-btn');
-  if (localStorage.getItem('chatio_install_dismissed') !== '1') banner.classList.add('show');
-  if (sideBtn) sideBtn.style.display = 'flex';
+  if (localStorage.getItem('chatio_install_dismissed') !== '1')
+    document.getElementById('install-banner').classList.add('show');
+  const s = document.getElementById('sidebar-install-btn');
+  if (s) s.style.display = 'flex';
 });
 window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
   document.getElementById('install-banner').classList.remove('show');
-  const sideBtn = document.getElementById('sidebar-install-btn');
-  if (sideBtn) sideBtn.style.display = 'none';
-  showToast('✅ chat·io installé avec succès !');
+  const s = document.getElementById('sidebar-install-btn');
+  if (s) s.style.display = 'none';
+  showToast('✅ chat·io installé !');
 });
 window.triggerInstall = async () => {
   if (!deferredPrompt) return;
@@ -722,132 +731,114 @@ window.dismissInstall = () => {
 /* ══ SERVICE WORKER ══ */
 if ('serviceWorker' in navigator) {
   const swCode = `
-    const CACHE = 'chatio-v2';
-    const STATIC = ['./', './chat.io.html'];
-    self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC).catch(()=>{}))); self.skipWaiting(); });
-    self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))); self.clients.claim(); });
-    self.addEventListener('fetch', e => { if (e.request.method !== 'GET') return; e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });
+    const CACHE='chatio-v3';
+    self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./chat.io.html']).catch(()=>{})));self.skipWaiting();});
+    self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
+    self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));});
   `;
-  const swBlob = new Blob([swCode], { type: 'application/javascript' });
-  navigator.serviceWorker.register(URL.createObjectURL(swBlob), { scope: './' }).catch(err => console.warn('SW:', err));
+  navigator.serviceWorker.register(
+    URL.createObjectURL(new Blob([swCode],{type:'application/javascript'})),
+    { scope:'./' }
+  ).catch(()=>{});
 }
 
 /* ══ THEME ══ */
 window.toggleTheme = () => {
   const html = document.documentElement;
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  const sunIcon = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
-  const moonIcon = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
-  ['theme-icon','theme-icon2'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = isDark ? sunIcon : moonIcon; });
+  const dark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', dark ? 'light' : 'dark');
+  const sun  = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
+  const moon = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+  ['theme-icon','theme-icon2'].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML = dark ? sun : moon; });
 };
 
 /* ══ PASSWORD ══ */
 async function hashPassword(pwd) {
-  const enc = new TextEncoder().encode(pwd);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-window.togglePwd = (inputId, btn) => {
-  const inp = document.getElementById(inputId);
-  const isHidden = inp.type === 'password';
-  inp.type = isHidden ? 'text' : 'password';
-  btn.innerHTML = isHidden
+window.togglePwd = (id, btn) => {
+  const inp = document.getElementById(id);
+  inp.type  = inp.type === 'password' ? 'text' : 'password';
+  btn.innerHTML = inp.type === 'text'
     ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
     : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
 };
-window.checkPwdStrength = (val) => {
+window.checkPwdStrength = v => {
   const fill = document.getElementById('pwd-fill');
-  const label = document.getElementById('pwd-label');
-  if (!val) { fill.style.width='0%'; label.textContent=''; return; }
-  let score = 0;
-  if (val.length >= 6) score++;
-  if (val.length >= 10) score++;
-  if (/[A-Z]/.test(val)) score++;
-  if (/[0-9]/.test(val)) score++;
-  if (/[^A-Za-z0-9]/.test(val)) score++;
-  const levels = [
-    { w:'20%', c:'#f87171', t:'Très faible' }, { w:'40%', c:'#fb923c', t:'Faible' },
-    { w:'60%', c:'#facc15', t:'Moyen' }, { w:'80%', c:'#4ade80', t:'Fort' }, { w:'100%', c:'#34d399', t:'Très fort' },
-  ];
-  const lvl = levels[Math.min(score-1, 4)] || levels[0];
-  fill.style.width = lvl.w; fill.style.background = lvl.c;
-  label.textContent = lvl.t; label.style.color = lvl.c;
+  const lbl  = document.getElementById('pwd-label');
+  if (!v) { fill.style.width='0%'; lbl.textContent=''; return; }
+  let s=0;
+  if(v.length>=6)s++; if(v.length>=10)s++;
+  if(/[A-Z]/.test(v))s++; if(/[0-9]/.test(v))s++; if(/[^A-Za-z0-9]/.test(v))s++;
+  const lvls=[{w:'20%',c:'#f87171',t:'Très faible'},{w:'40%',c:'#fb923c',t:'Faible'},{w:'60%',c:'#facc15',t:'Moyen'},{w:'80%',c:'#4ade80',t:'Fort'},{w:'100%',c:'#34d399',t:'Très fort'}];
+  const l=lvls[Math.min(s-1,4)]||lvls[0];
+  fill.style.width=l.w; fill.style.background=l.c; lbl.textContent=l.t; lbl.style.color=l.c;
 };
 
-/* ══ AUTH ══ */
+/* ══ AUTH UI ══ */
 window.showRegister = () => { document.getElementById('login-view').style.display='none'; document.getElementById('register-view').style.display='block'; };
-window.showLogin = () => { document.getElementById('register-view').style.display='none'; document.getElementById('login-view').style.display='block'; };
-
-function setLoading(btnId, loading) {
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
-  if (loading) { btn.disabled = true; btn.dataset.orig = btn.textContent; btn.innerHTML = `<span class="spinner"></span>`; }
-  else { btn.disabled = false; btn.textContent = btn.dataset.orig || btn.textContent; }
+window.showLogin    = () => { document.getElementById('register-view').style.display='none'; document.getElementById('login-view').style.display='block'; };
+function setLoading(id, on) {
+  const b = document.getElementById(id); if(!b) return;
+  if (on) { b.disabled=true; b.dataset.orig=b.textContent; b.innerHTML='<span class="spinner"></span>'; }
+  else     { b.disabled=false; b.textContent=b.dataset.orig||b.textContent; }
 }
 
 window.register = async () => {
   const name = document.getElementById('register-name').value.trim();
-  const pwd = document.getElementById('register-pwd').value;
+  const pwd  = document.getElementById('register-pwd').value;
   const pwd2 = document.getElementById('register-pwd2').value;
-  const errEl = document.getElementById('register-err');
-  const okEl = document.getElementById('register-ok');
-  errEl.style.display='none'; okEl.style.display='none';
-  if (!name) { errEl.textContent='Entrez votre prénom'; errEl.style.display='block'; return; }
-  if (!pwd || pwd.length < 6) { errEl.textContent='Le mot de passe doit faire au moins 6 caractères'; errEl.style.display='block'; return; }
-  if (pwd !== pwd2) { errEl.textContent='Les mots de passe ne correspondent pas'; errEl.style.display='block'; return; }
+  const err  = document.getElementById('register-err');
+  const ok   = document.getElementById('register-ok');
+  err.style.display='none'; ok.style.display='none';
+  if(!name)              { err.textContent='Entrez votre prénom'; err.style.display='block'; return; }
+  if(pwd.length<6)       { err.textContent='Mot de passe trop court (6 car. min)'; err.style.display='block'; return; }
+  if(pwd!==pwd2)         { err.textContent='Mots de passe différents'; err.style.display='block'; return; }
   setLoading('register-btn', true);
   try {
-    const snap = await get(ref(db,'users'));
-    if (snap.exists()) {
-      const users = snap.val();
-      const exists = Object.values(users).find(u=>u.name.toLowerCase()===name.toLowerCase());
-      if (exists) { errEl.textContent='Ce prénom est déjà pris'; errEl.style.display='block'; return; }
+    const snap  = await get(ref(db,'users'));
+    if (snap.exists() && Object.values(snap.val()).find(u=>u.name.toLowerCase()===name.toLowerCase())) {
+      err.textContent='Ce prénom est déjà pris'; err.style.display='block'; return;
     }
-    const pwdHash = await hashPassword(pwd);
-    const newRef = push(ref(db,'users'));
-    const userId = newRef.key;
-    await set(newRef, { name, pwdHash, online: true, createdAt: Date.now() });
-    localStorage.setItem('chatio_user', JSON.stringify({id:userId, name}));
-    okEl.textContent = `Compte créé ! Bienvenue ${name} 🎉`; okEl.style.display='block';
-    setTimeout(() => startApp({id:userId, name}), 800);
-  } catch(e) { errEl.textContent = 'Erreur réseau. Réessayez.'; errEl.style.display='block'; }
+    const hash  = await hashPassword(pwd);
+    const nRef  = push(ref(db,'users'));
+    await set(nRef, { name, pwdHash:hash, online:true, createdAt:Date.now() });
+    localStorage.setItem('chatio_user', JSON.stringify({id:nRef.key, name}));
+    ok.textContent=`Compte créé ! Bienvenue ${name} 🎉`; ok.style.display='block';
+    setTimeout(()=>startApp({id:nRef.key, name}), 800);
+  } catch(e) { err.textContent='Erreur réseau.'; err.style.display='block'; }
   finally { setLoading('register-btn', false); }
 };
 
 window.login = async () => {
   const name = document.getElementById('login-name').value.trim();
-  const pwd = document.getElementById('login-pwd').value;
-  const errEl = document.getElementById('login-err');
-  errEl.style.display='none';
-  if (!name) { errEl.textContent='Entrez votre prénom'; errEl.style.display='block'; return; }
-  if (!pwd) { errEl.textContent='Entrez votre mot de passe'; errEl.style.display='block'; return; }
+  const pwd  = document.getElementById('login-pwd').value;
+  const err  = document.getElementById('login-err');
+  err.style.display='none';
+  if(!name) { err.textContent='Entrez votre prénom'; err.style.display='block'; return; }
+  if(!pwd)  { err.textContent='Entrez votre mot de passe'; err.style.display='block'; return; }
   setLoading('login-btn', true);
   try {
     const snap = await get(ref(db,'users'));
-    if (!snap.exists()) { errEl.textContent='Aucun compte trouvé'; errEl.style.display='block'; return; }
-    const users = snap.val();
-    const entry = Object.entries(users).find(([,u])=>u.name.toLowerCase()===name.toLowerCase());
-    if (!entry) { errEl.textContent='Prénom introuvable. Inscrivez-vous !'; errEl.style.display='block'; return; }
-    const [userId, userData] = entry;
-    if (userData.pwdHash) {
-      const hash = await hashPassword(pwd);
-      if (hash !== userData.pwdHash) { errEl.textContent='Mot de passe incorrect'; errEl.style.display='block'; return; }
-    } else {
-      const hash = await hashPassword(pwd);
-      await update(ref(db,`users/${userId}`), { pwdHash: hash });
-    }
-    await update(ref(db,`users/${userId}`), { online: true });
-    localStorage.setItem('chatio_user', JSON.stringify({id:userId, name:userData.name}));
-    startApp({id:userId, name:userData.name});
-  } catch(e) { errEl.textContent = 'Erreur réseau. Réessayez.'; errEl.style.display='block'; }
+    if(!snap.exists()){ err.textContent='Aucun compte trouvé'; err.style.display='block'; return; }
+    const entry = Object.entries(snap.val()).find(([,u])=>u.name.toLowerCase()===name.toLowerCase());
+    if(!entry){ err.textContent='Prénom introuvable'; err.style.display='block'; return; }
+    const [uid, udata] = entry;
+    const hash = await hashPassword(pwd);
+    if(udata.pwdHash){ if(hash!==udata.pwdHash){ err.textContent='Mot de passe incorrect'; err.style.display='block'; return; } }
+    else { await update(ref(db,`users/${uid}`),{pwdHash:hash}); }
+    await update(ref(db,`users/${uid}`),{online:true});
+    localStorage.setItem('chatio_user', JSON.stringify({id:uid, name:udata.name}));
+    startApp({id:uid, name:udata.name});
+  } catch(e) { err.textContent='Erreur réseau.'; err.style.display='block'; }
   finally { setLoading('login-btn', false); }
 };
 
 window.logout = async () => {
-  if (!currentUser) return;
-  if (isRecording) cancelRecording();
-  await update(ref(db,`users/${currentUser.id}`), { online: false });
+  if(!currentUser) return;
+  if(isRecording) cancelRecording();
+  await update(ref(db,`users/${currentUser.id}`),{online:false});
   localStorage.removeItem('chatio_user');
   location.reload();
 };
@@ -859,20 +850,19 @@ function startApp(user) {
   document.getElementById('app-screen').classList.add('active');
   document.getElementById('my-name-el').textContent = user.name;
   document.getElementById('my-avatar-el').textContent = user.name[0];
-  loadUsers();
-  loadConversations();
-  window.addEventListener('beforeunload', () => { update(ref(db,`users/${currentUser.id}`), {online:false}); });
+  loadUsers(); loadConversations();
+  window.addEventListener('beforeunload', () => update(ref(db,`users/${currentUser.id}`),{online:false}));
 }
 
-const saved = localStorage.getItem('chatio_user');
-if (saved) {
+const _saved = localStorage.getItem('chatio_user');
+if (_saved) {
   try {
-    const u = JSON.parse(saved);
-    get(ref(db,`users/${u.id}`)).then(snap=>{
-      if(snap.exists()) { update(ref(db,`users/${u.id}`),{online:true}); startApp(u); }
-      else { localStorage.removeItem('chatio_user'); }
+    const u = JSON.parse(_saved);
+    get(ref(db,`users/${u.id}`)).then(s=>{
+      if(s.exists()){ update(ref(db,`users/${u.id}`),{online:true}); startApp(u); }
+      else localStorage.removeItem('chatio_user');
     });
-  } catch(e) { localStorage.removeItem('chatio_user'); }
+  } catch(e){ localStorage.removeItem('chatio_user'); }
 }
 
 /* ══ USERS ══ */
@@ -880,16 +870,10 @@ function loadUsers() {
   onValue(ref(db,'users'), snap => {
     allUsers = snap.val() || {};
     renderConvList();
-    if (currentConvId && conversations[currentConvId]) {
-      const conv = conversations[currentConvId];
-      if (conv.type === 'direct') {
-        const otherId = Object.keys(conv.members||{}).find(m=>m!==currentUser.id);
-        const other = allUsers[otherId];
-        if(other) {
-          const s = document.getElementById('chat-status');
-          if(s) { s.textContent = other.online?'● En ligne':'○ Hors ligne'; s.className='chat-header-status'+(other.online?' on':''); }
-        }
-      }
+    if(currentConvId && conversations[currentConvId]?.type==='direct') {
+      const oid = Object.keys(conversations[currentConvId].members||{}).find(m=>m!==currentUser.id);
+      const o   = allUsers[oid];
+      if(o){ const s=document.getElementById('chat-status'); if(s){ s.textContent=o.online?'● En ligne':'○ Hors ligne'; s.className='chat-header-status'+(o.online?' on':''); } }
     }
   });
 }
@@ -899,52 +883,61 @@ function loadConversations() {
   onValue(ref(db,'conversations'), snap => {
     const all = snap.val() || {};
     conversations = {};
-    for (const [id, conv] of Object.entries(all)) {
-      if (conv.members && conv.members[currentUser.id]) conversations[id] = {...conv, id};
-    }
+    for(const [id,c] of Object.entries(all))
+      if(c.members?.[currentUser.id]) conversations[id]={...c,id};
     renderConvList();
   });
 }
 
+function convDisplayName(c) {
+  if(c.type==='group') return c.name||'Groupe';
+  if(!c.members) return '?';
+  const oid = Object.keys(c.members).find(m=>m!==currentUser.id);
+  return (allUsers[oid]||{}).name || c._otherName || '?';
+}
+
 function renderConvList() {
-  const search = (document.getElementById('search-input')||{}).value?.toLowerCase()||'';
-  const list = document.getElementById('conv-list');
+  const search = (document.getElementById('search-input')?.value||'').toLowerCase();
+  const list   = document.getElementById('conv-list');
   const sorted = Object.values(conversations).sort((a,b)=>(b.lastTime||0)-(a.lastTime||0));
+
   let items = sorted.filter(c => {
-    const name = convDisplayName(c).toLowerCase();
-    if(search && !name.includes(search)) return false;
+    const n = convDisplayName(c).toLowerCase();
+    if(search && !n.includes(search)) return false;
     if(currentTab==='contacts' && c.type!=='direct') return false;
-    if(currentTab==='groups' && c.type!=='group') return false;
+    if(currentTab==='groups'   && c.type!=='group')  return false;
     return true;
   });
-  if(currentTab==='contacts' || currentTab==='all') {
-    const existingDirect = Object.values(conversations).filter(c=>c.type==='direct').map(c=>c.members ? Object.keys(c.members).find(m=>m!==currentUser.id) : null).filter(Boolean);
-    const others = Object.entries(allUsers).filter(([id])=>id!==currentUser.id&&!existingDirect.includes(id));
-    for(const [id, u] of others) {
-      if(!search || u.name.toLowerCase().includes(search)) items.push({type:'direct',_new:true,_otherId:id,_otherName:u.name,_online:u.online});
+
+  if(currentTab!=='groups') {
+    const existing = Object.values(conversations).filter(c=>c.type==='direct')
+      .map(c=>c.members?Object.keys(c.members).find(m=>m!==currentUser.id):null).filter(Boolean);
+    for(const [id,u] of Object.entries(allUsers)) {
+      if(id===currentUser.id || existing.includes(id)) continue;
+      if(!search || u.name.toLowerCase().includes(search))
+        items.push({type:'direct',_new:true,_otherId:id,_otherName:u.name,_online:u.online});
     }
   }
-  if(!items.length) { list.innerHTML='<div class="empty-list">Aucune conversation</div>'; return; }
+
+  if(!items.length){ list.innerHTML='<div class="empty-list">Aucune conversation</div>'; return; }
+
   list.innerHTML = items.map(c => {
-    if(c._new) {
-      const init = c._otherName[0].toUpperCase();
-      return `<div class="conv-item" onclick="openDirectNew('${c._otherId}','${c._otherName}')">
-        <div class="avatar">${init}<span class="status-dot ${c._online?'':'offline'}"></span></div>
+    if(c._new){
+      return `<div class="conv-item" onclick="openDirectNew('${c._otherId}','${esc(c._otherName)}')">
+        <div class="avatar">${c._otherName[0].toUpperCase()}<span class="status-dot ${c._online?'':'offline'}"></span></div>
         <div class="conv-info">
           <div class="conv-name">${esc(c._otherName)}</div>
           <div class="conv-preview" style="font-style:italic;color:var(--text3)">Démarrer une conversation</div>
-        </div>
-      </div>`;
+        </div></div>`;
     }
-    const name = convDisplayName(c);
-    const init = name[0].toUpperCase();
-    const isGroup = c.type==='group';
-    let online = false;
-    if(!isGroup) { const otherId = c.members ? Object.keys(c.members).find(m=>m!==currentUser.id) : null; if(otherId && allUsers[otherId]) online = allUsers[otherId].online; }
-    const active = c.id===currentConvId?' active':'';
-    return `<div class="conv-item${active}" onclick="openConv('${c.id}')">
-      <div class="avatar${isGroup?' group':''}">${isGroup?'#':init}
-        ${!isGroup?`<span class="status-dot ${online?'':'offline'}"></span>`:''}
+    const name   = convDisplayName(c);
+    const isGrp  = c.type==='group';
+    let online   = false;
+    if(!isGrp){ const oid=c.members?Object.keys(c.members).find(m=>m!==currentUser.id):null; if(oid&&allUsers[oid]) online=allUsers[oid].online; }
+    const act = c.id===currentConvId?' active':'';
+    return `<div class="conv-item${act}" onclick="openConv('${c.id}')">
+      <div class="avatar${isGrp?' group':''}">${isGrp?'#':name[0].toUpperCase()}
+        ${!isGrp?`<span class="status-dot ${online?'':'offline'}"></span>`:''}
       </div>
       <div class="conv-info">
         <div class="conv-name">${esc(name)}</div>
@@ -955,25 +948,24 @@ function renderConvList() {
   }).join('');
 }
 
-function convDisplayName(c) {
-  if(c.type==='group') return c.name||'Groupe';
-  if(!c.members) return '?';
-  const otherId = Object.keys(c.members).find(m=>m!==currentUser.id);
-  return (allUsers[otherId]||{}).name || c._otherName || '?';
-}
-
 /* ══ MOBILE NAV ══ */
-function isMobile() { return window.innerWidth <= 700; }
-function showChat() { if(isMobile()) { document.getElementById('sidebar').classList.add('slide-out'); document.getElementById('chat-area').classList.add('slide-in'); } }
-window.backToList = () => { document.getElementById('sidebar').classList.remove('slide-out'); document.getElementById('chat-area').classList.remove('slide-in'); currentConvId = null; };
+const isMobile = () => window.innerWidth <= 700;
+function showChatPanel(){ if(isMobile()){ document.getElementById('sidebar').classList.add('slide-out'); document.getElementById('chat-area').classList.add('slide-in'); } }
+window.backToList = () => { document.getElementById('sidebar').classList.remove('slide-out'); document.getElementById('chat-area').classList.remove('slide-in'); currentConvId=null; };
 
-window.openConv = (convId) => { currentConvId = convId; const conv = conversations[convId]; if(!conv) return; showChatView(conv); listenMessages(convId); renderConvList(); showChat(); };
-window.openDirectNew = async (otherId, otherName) => {
+window.openConv = id => {
+  currentConvId = id;
+  const c = conversations[id]; if(!c) return;
+  showChatView(c); listenMessages(id); renderConvList(); showChatPanel();
+};
+window.openDirectNew = async (oid, oname) => {
   const snap = await get(ref(db,'conversations'));
-  if(snap.exists()) { for(const [id,c] of Object.entries(snap.val())) { if(c.type==='direct' && c.members && c.members[currentUser.id] && c.members[otherId]) { openConv(id); return; } } }
-  const newRef = push(ref(db,'conversations'));
-  await set(newRef, { type:'direct', members:{ [currentUser.id]:true, [otherId]:true }, lastMsg:'', lastTime: Date.now() });
-  openConv(newRef.key);
+  if(snap.exists())
+    for(const [id,c] of Object.entries(snap.val()))
+      if(c.type==='direct'&&c.members?.[currentUser.id]&&c.members?.[oid]){ openConv(id); return; }
+  const nr = push(ref(db,'conversations'));
+  await set(nr,{type:'direct',members:{[currentUser.id]:true,[oid]:true},lastMsg:'',lastTime:Date.now()});
+  openConv(nr.key);
 };
 
 function showChatView(conv) {
@@ -981,21 +973,21 @@ function showChatView(conv) {
   const cv = document.getElementById('chat-view'); cv.style.display='flex';
   const name = convDisplayName(conv);
   document.getElementById('chat-name').textContent = name;
-  const avatarEl = document.getElementById('chat-avatar');
-  avatarEl.textContent = conv.type==='group'?'#':name[0].toUpperCase();
-  avatarEl.className = 'avatar'+(conv.type==='group'?' group':'');
-  const addBtn = document.getElementById('add-member-btn');
-  if(conv.type==='direct') {
-    const otherId = Object.keys(conv.members||{}).find(m=>m!==currentUser.id);
-    const other = allUsers[otherId]||{};
-    const s = document.getElementById('chat-status');
-    s.textContent = other.online?'● En ligne':'○ Hors ligne';
-    s.className = 'chat-header-status'+(other.online?' on':'');
+  const av = document.getElementById('chat-avatar');
+  av.textContent  = conv.type==='group'?'#':name[0].toUpperCase();
+  av.className    = 'avatar'+(conv.type==='group'?' group':'');
+  const addBtn    = document.getElementById('add-member-btn');
+  if(conv.type==='direct'){
+    const oid = Object.keys(conv.members||{}).find(m=>m!==currentUser.id);
+    const o   = allUsers[oid]||{};
+    const s   = document.getElementById('chat-status');
+    s.textContent = o.online?'● En ligne':'○ Hors ligne';
+    s.className   = 'chat-header-status'+(o.online?' on':'');
     addBtn.style.display='none';
   } else {
-    const memberCount = Object.keys(conv.members||{}).length;
-    document.getElementById('chat-status').textContent = `${memberCount} membre${memberCount>1?'s':''}`;
-    document.getElementById('chat-status').className = 'chat-header-status';
+    const mc = Object.keys(conv.members||{}).length;
+    document.getElementById('chat-status').textContent = `${mc} membre${mc>1?'s':''}`;
+    document.getElementById('chat-status').className   = 'chat-header-status';
     addBtn.style.display='flex';
   }
 }
@@ -1005,35 +997,34 @@ function listenMessages(convId) {
   if(msgListener) off(ref(db,`messages/${msgListener}`));
   msgListener = convId;
   const container = document.getElementById('messages-container');
-  container.innerHTML='';
+  container.innerHTML = '';
   let lastDate = null;
 
   onChildAdded(query(ref(db,`messages/${convId}`), orderByChild('ts')), snap => {
     const msg = snap.val();
-    const d = new Date(msg.ts);
-    const dStr = d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
-    if(dStr !== lastDate) {
-      lastDate = dStr;
+    const d   = new Date(msg.ts);
+    const ds  = d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'});
+    if(ds!==lastDate){
+      lastDate = ds;
       const sep = document.createElement('div');
-      sep.className='date-sep';
-      sep.innerHTML=`<span>${dStr}</span>`;
+      sep.className='date-sep'; sep.innerHTML=`<span>${ds}</span>`;
       container.appendChild(sep);
     }
-    const isOut = msg.senderId === currentUser.id;
-    const wrap = document.createElement('div');
+    const isOut = msg.senderId===currentUser.id;
+    const wrap  = document.createElement('div');
     wrap.className = `msg-wrap ${isOut?'out':'in'}`;
-    const senderName = isOut ? '' : (allUsers[msg.senderId]||{}).name||msg.senderName||'';
+    const sender = isOut?'':(allUsers[msg.senderId]||{}).name||msg.senderName||'';
+    const isGrp  = conversations[convId]?.type==='group';
 
     let content = '';
-    if(msg.type === 'voice') {
-      content = buildVoiceMsgHTML(msg, isOut);
-    } else if(msg.type === 'file') {
-      if(msg.fileType && msg.fileType.startsWith('image/')) {
-        content = `<img class="msg-img" src="${esc(msg.fileUrl)}" alt="${esc(msg.fileName)}" onclick="openLightbox('${esc(msg.fileUrl)}')" loading="lazy" />`;
+    if(msg.type==='voice'){
+      content = buildVoiceHTML(msg);
+    } else if(msg.type==='file'){
+      if(msg.fileType?.startsWith('image/')){
+        content = `<img class="msg-img" src="${msg.fileUrl}" alt="${esc(msg.fileName)}" onclick="openLightbox('${esc(msg.fileUrl)}')" loading="lazy"/>`;
       } else {
-        const emoji = fileEmoji(msg.fileType||'');
-        content = `<a class="msg-file" href="${esc(msg.fileUrl)}" target="_blank" download="${esc(msg.fileName)}">
-          <div class="msg-file-icon">${emoji}</div>
+        content = `<a class="msg-file" href="${msg.fileUrl}" target="_blank" download="${esc(msg.fileName)}">
+          <div class="msg-file-icon">${fileEmoji(msg.fileType||'')}</div>
           <div class="msg-file-info">
             <div class="msg-file-name">${esc(msg.fileName)}</div>
             <div class="msg-file-size">${formatSize(msg.fileSize||0)}</div>
@@ -1045,428 +1036,324 @@ function listenMessages(convId) {
       content = esc(msg.text||'').replace(/\n/g,'<br>');
     }
 
-    wrap.innerHTML=`<div class="msg-bubble">
-      ${!isOut && conversations[convId]?.type==='group'?`<div class="msg-sender">${esc(senderName)}</div>`:''}
+    wrap.innerHTML = `<div class="msg-bubble">
+      ${!isOut&&isGrp?`<div class="msg-sender">${esc(sender)}</div>`:''}
       ${content}
       <div class="msg-time">${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
     </div>`;
     container.appendChild(wrap);
     container.scrollTop = container.scrollHeight;
 
-    // Attach voice player after DOM insert
-    if(msg.type === 'voice') {
-      const msgId = snap.key;
-      setupVoicePlayer(wrap, msg, msgId);
-    }
+    if(msg.type==='voice') setupVoicePlayer(wrap, msg, snap.key);
   });
 }
 
-/* ════════════════════════════════════
-   🎙️ VOICE MESSAGE RENDERING
-════════════════════════════════════ */
-
-function buildVoiceMsgHTML(msg, isOut) {
-  // Generate fake waveform bars from stored peaks or fallback random-looking
-  const peaks = msg.peaks || generateFakePeaks(40);
-  const bars = peaks.map((h, i) =>
-    `<div class="voice-bar" data-idx="${i}" style="height:${Math.max(3, h * 28)}px"></div>`
-  ).join('');
-
-  const dur = msg.duration ? formatDuration(msg.duration) : '0:00';
-  return `
-    <div class="voice-msg" data-url="${esc(msg.fileUrl)}" data-duration="${msg.duration||0}">
-      <button class="voice-play-btn" aria-label="Lire le message vocal">
-        <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-      </button>
-      <div class="voice-waveform">${bars}</div>
-      <div class="voice-duration">${dur}</div>
-    </div>`;
-}
-
-function generateFakePeaks(n) {
-  const peaks = [];
-  for(let i=0;i<n;i++) {
-    // Natural-looking pattern
-    const base = 0.2 + Math.random() * 0.6;
-    peaks.push(+(base).toFixed(2));
-  }
-  return peaks;
-}
-
-// Track active audio players
-const activePlayers = new Map(); // msgId -> { audio, interval }
-
-function setupVoicePlayer(wrap, msg, msgId) {
-  const voiceEl = wrap.querySelector('.voice-msg');
-  if (!voiceEl) return;
-  const playBtn = voiceEl.querySelector('.voice-play-btn');
-  const iconPlay = voiceEl.querySelector('.icon-play');
-  const iconPause = voiceEl.querySelector('.icon-pause');
-  const waveformEl = voiceEl.querySelector('.voice-waveform');
-  const bars = waveformEl.querySelectorAll('.voice-bar');
-  const durEl = voiceEl.querySelector('.voice-duration');
-  const totalDur = msg.duration || 0;
-
-  let audio = null;
-
-  function stopOtherPlayers() {
-    for (const [id, player] of activePlayers) {
-      if (id !== msgId) {
-        player.audio.pause();
-        player.audio.currentTime = 0;
-        clearInterval(player.interval);
-        player.playBtn.classList.remove('playing');
-        player.iconPlay.style.display = '';
-        player.iconPause.style.display = 'none';
-        player.bars.forEach(b => b.classList.remove('played'));
-        if(totalDur > 0) player.durEl.textContent = formatDuration(totalDur);
-        activePlayers.delete(id);
-      }
-    }
-  }
-
-  playBtn.addEventListener('click', () => {
-    if (!audio) {
-      audio = new Audio(msg.fileUrl);
-      audio.addEventListener('ended', () => {
-        clearInterval(tickInterval);
-        playBtn.classList.remove('playing');
-        iconPlay.style.display = '';
-        iconPause.style.display = 'none';
-        bars.forEach(b => b.classList.remove('played'));
-        if(totalDur > 0) durEl.textContent = formatDuration(totalDur);
-        activePlayers.delete(msgId);
-      });
-    }
-
-    if (audio.paused) {
-      stopOtherPlayers();
-      audio.play().catch(()=>{});
-      playBtn.classList.add('playing');
-      iconPlay.style.display = 'none';
-      iconPause.style.display = '';
-
-      let tickInterval = setInterval(() => {
-        if(!audio || audio.paused) { clearInterval(tickInterval); return; }
-        const dur = audio.duration || totalDur || 1;
-        const prog = audio.currentTime / dur;
-        const activeCount = Math.floor(prog * bars.length);
-        bars.forEach((b, i) => { i < activeCount ? b.classList.add('played') : b.classList.remove('played'); });
-        const remaining = dur - audio.currentTime;
-        durEl.textContent = formatDuration(Math.max(0, remaining));
-      }, 100);
-
-      activePlayers.set(msgId, { audio, interval: tickInterval, playBtn, iconPlay, iconPause, bars, durEl });
-    } else {
-      audio.pause();
-      playBtn.classList.remove('playing');
-      iconPlay.style.display = '';
-      iconPause.style.display = 'none';
-    }
-  });
-
-  // Click on waveform to seek
-  waveformEl.addEventListener('click', (e) => {
-    if (!audio) return;
-    const rect = waveformEl.getBoundingClientRect();
-    const pct = (e.clientX - rect.left) / rect.width;
-    const dur = audio.duration || totalDur || 1;
-    audio.currentTime = pct * dur;
-  });
-}
-
-/* ════════════════════════════════════
-   🎙️ VOICE RECORDING
-════════════════════════════════════ */
-
-window.toggleRecording = async () => {
-  if (isRecording) {
-    stopAndSendRecording();
-  } else {
-    await startRecording();
+/* ══ SEND TEXT ══ */
+window.sendMsg = async () => {
+  const inp  = document.getElementById('msg-input');
+  const text = inp.value.trim();
+  if(!text && !pendingFiles.length) return;
+  if(!currentConvId) return;
+  for(const f of pendingFiles) await sendFile(f);
+  pendingFiles=[]; renderFilePreview();
+  if(text){
+    inp.value=''; inp.style.height='auto';
+    const mr = push(ref(db,`messages/${currentConvId}`));
+    await set(mr,{text, senderId:currentUser.id, senderName:currentUser.name, ts:Date.now()});
+    await update(ref(db,`conversations/${currentConvId}`),{
+      lastMsg: text.length>50?text.slice(0,50)+'…':text, lastTime:Date.now()
+    });
   }
 };
 
-async function startRecording() {
-  if (!currentConvId) { showToast('Sélectionnez une conversation d\'abord'); return; }
+/* ══ FILE SEND (base64 → Realtime DB) ══ */
+window.handleFileSelect = inp => {
+  const files = Array.from(inp.files); if(!files.length) return;
+  pendingFiles = [...pendingFiles, ...files]; renderFilePreview(); inp.value='';
+};
 
+function renderFilePreview() {
+  const zone = document.getElementById('file-preview-zone');
+  if(!pendingFiles.length){ zone.classList.remove('visible'); zone.innerHTML=''; return; }
+  zone.classList.add('visible');
+  zone.innerHTML = pendingFiles.map((f,i) => {
+    if(f.type.startsWith('image/')){
+      const u=URL.createObjectURL(f);
+      return `<div class="file-preview-chip"><img class="file-preview-img" src="${u}" alt=""/><span>${esc(f.name)}</span><button onclick="removeFile(${i})">✕</button></div>`;
+    }
+    return `<div class="file-preview-chip"><span style="font-size:1.1rem">${fileEmoji(f.type)}</span><span>${esc(f.name)}</span><button onclick="removeFile(${i})">✕</button></div>`;
+  }).join('');
+}
+window.removeFile = i => { pendingFiles.splice(i,1); renderFilePreview(); };
+
+async function sendFile(file) {
+  if(file.size > FILE_SIZE_LIMIT){ showToast(`❌ ${file.name} trop lourd (max 500 Ko)`); return; }
+  showToast(`Envoi de ${file.name}…`);
   try {
-    recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch(e) {
-    showToast('🎙️ Accès au microphone refusé');
-    return;
-  }
+    const dataURL = await blobToDataURL(file);
+    const mr = push(ref(db,`messages/${currentConvId}`));
+    await set(mr,{type:'file',fileUrl:dataURL,fileName:file.name,fileType:file.type,fileSize:file.size,senderId:currentUser.id,senderName:currentUser.name,ts:Date.now()});
+    await update(ref(db,`conversations/${currentConvId}`),{lastMsg:`📎 ${file.name}`,lastTime:Date.now()});
+  } catch(e){ console.error(e); showToast(`❌ Erreur d'envoi : ${file.name}`); }
+}
+
+/* ════════════════════════════════════
+   🎙️ VOICE — ENREGISTREMENT
+════════════════════════════════════ */
+window.toggleRecording = async () => isRecording ? stopAndSendRecording() : startRecording();
+
+async function startRecording() {
+  if(!currentConvId){ showToast('Sélectionnez une conversation'); return; }
+  try {
+    recordingStream = await navigator.mediaDevices.getUserMedia({audio:true});
+  } catch(e){ showToast('🎙️ Accès micro refusé'); return; }
 
   audioChunks = [];
-  const mimeType = getSupportedMimeType();
-  mediaRecorder = new MediaRecorder(recordingStream, mimeType ? { mimeType } : {});
-  mediaRecorder.ondataavailable = e => { if(e.data.size > 0) audioChunks.push(e.data); };
+  pendingVoiceMime = getSupportedMimeType();
+  mediaRecorder = new MediaRecorder(recordingStream, pendingVoiceMime ? {mimeType:pendingVoiceMime} : {});
+  mediaRecorder.ondataavailable = e => { if(e.data.size>0) audioChunks.push(e.data); };
   mediaRecorder.start(100);
 
-  isRecording = true;
+  isRecording  = true;
   recStartTime = Date.now();
 
-  // UI
   document.getElementById('recording-bar').classList.add('active');
-  const voiceBtn = document.getElementById('voice-btn');
-  voiceBtn.classList.add('recording');
+  document.getElementById('voice-btn').classList.add('recording');
 
-  // Timer
   recTimerInterval = setInterval(() => {
-    const elapsed = Math.floor((Date.now() - recStartTime) / 1000);
+    const elapsed = Math.floor((Date.now()-recStartTime)/1000);
     document.getElementById('rec-timer').textContent = formatDuration(elapsed);
-    // Auto-stop at 2 minutes
-    if(elapsed >= 120) stopAndSendRecording();
+    if(elapsed >= 120) stopAndSendRecording(); // auto-stop 2 min
   }, 500);
 
-  // Waveform visualizer
-  recAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-  recAnalyser = recAudioContext.createAnalyser();
-  recAnalyser.fftSize = 64;
-  const source = recAudioContext.createMediaStreamSource(recordingStream);
-  source.connect(recAnalyser);
-
-  const waveformEl = document.getElementById('rec-waveform');
-  waveformEl.innerHTML = '';
-  // Pre-create bars
-  const BAR_COUNT = 40;
-  recBars = [];
-  for(let i = 0; i < BAR_COUNT; i++) {
-    const bar = document.createElement('div');
-    bar.className = 'rec-bar';
-    bar.style.height = '4px';
-    waveformEl.appendChild(bar);
-    recBars.push(bar);
+  // Waveform live
+  recAudioContext = new (window.AudioContext||window.webkitAudioContext)();
+  recAnalyser     = recAudioContext.createAnalyser(); recAnalyser.fftSize=64;
+  recAudioContext.createMediaStreamSource(recordingStream).connect(recAnalyser);
+  const waveEl = document.getElementById('rec-waveform'); waveEl.innerHTML='';
+  const N=40; recBars=[];
+  for(let i=0;i<N;i++){
+    const b=document.createElement('div'); b.className='rec-bar'; b.style.height='4px';
+    waveEl.appendChild(b); recBars.push(b);
   }
-
-  const dataArray = new Uint8Array(recAnalyser.frequencyBinCount);
-  recAnimInterval = setInterval(() => {
-    recAnalyser.getByteFrequencyData(dataArray);
-    // Scroll the bars left and add a new one at the end
-    for(let i = 0; i < BAR_COUNT - 1; i++) {
-      recBars[i].style.height = recBars[i+1].style.height;
-    }
-    const avg = dataArray.reduce((a,b)=>a+b,0) / dataArray.length;
-    const h = Math.max(3, (avg / 128) * 32);
-    recBars[BAR_COUNT-1].style.height = h + 'px';
+  const da = new Uint8Array(recAnalyser.frequencyBinCount);
+  recAnimInterval = setInterval(()=>{
+    recAnalyser.getByteFrequencyData(da);
+    for(let i=0;i<N-1;i++) recBars[i].style.height=recBars[i+1].style.height;
+    const avg = da.reduce((a,b)=>a+b,0)/da.length;
+    recBars[N-1].style.height = Math.max(3,(avg/128)*32)+'px';
   }, 80);
 }
 
+function stopAndSendRecording() {
+  if(!isRecording||!mediaRecorder) return;
+  const duration  = Math.max(1, Math.floor((Date.now()-recStartTime)/1000));
+  const mimeType  = pendingVoiceMime || 'audio/webm';
+  const convId    = currentConvId;
+
+  // Attendre l'événement onstop pour avoir TOUS les chunks
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(audioChunks, {type: mimeType});
+    audioChunks = [];
+
+    if(blob.size < 500){ showToast('Message trop court'); return; }
+    if(blob.size > VOICE_SIZE_LIMIT){ showToast(`🎙️ Trop long — max ~40 sec (${formatSize(blob.size)})`); return; }
+
+    const peaks = await computePeaks(blob, 40);
+    showToast('Envoi du message vocal…');
+    try {
+      const dataURL = await blobToDataURL(blob);
+      const mr = push(ref(db,`messages/${convId}`));
+      await set(mr,{type:'voice',fileUrl:dataURL,duration,peaks,senderId:currentUser.id,senderName:currentUser.name,ts:Date.now()});
+      await update(ref(db,`conversations/${convId}`),{lastMsg:`🎙️ Message vocal (${formatDuration(duration)})`,lastTime:Date.now()});
+    } catch(e){ console.error(e); showToast('❌ Erreur envoi vocal'); }
+  };
+
+  // Stoppe l'enregistrement (déclenche onstop après le dernier chunk)
+  stopRecordingCleanup();
+}
+window.stopAndSendRecording = stopAndSendRecording;
+
 window.cancelRecording = () => {
+  mediaRecorder.onstop = null; // ne pas envoyer
   stopRecordingCleanup();
   audioChunks = [];
   showToast('Enregistrement annulé');
 };
 
-window.stopAndSendRecording = async () => {
-  if (!isRecording || !mediaRecorder) return;
-
-  const duration = Math.floor((Date.now() - recStartTime) / 1000);
-  stopRecordingCleanup();
-
-  if(audioChunks.length === 0) return;
-
-  const mimeType = getSupportedMimeType() || 'audio/webm';
-  const blob = new Blob(audioChunks, { type: mimeType });
-  audioChunks = [];
-
-  if (blob.size < 1000) { showToast('Message trop court'); return; }
-
-  // Compute peaks for waveform display
-  const peaks = await computePeaks(blob, 40);
-
-  showToast('Envoi du message vocal…');
-  try {
-    const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'm4a' : 'webm';
-    const path = `voice/${currentConvId}/${Date.now()}.${ext}`;
-    const storageRef = sRef(storage, path);
-    await uploadBytes(storageRef, blob);
-    const url = await getDownloadURL(storageRef);
-
-    const msgRef = push(ref(db,`messages/${currentConvId}`));
-    await set(msgRef, {
-      type: 'voice',
-      fileUrl: url,
-      duration,
-      peaks,
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      ts: Date.now()
-    });
-    await update(ref(db,`conversations/${currentConvId}`), {
-      lastMsg: `🎙️ Message vocal (${formatDuration(duration)})`,
-      lastTime: Date.now()
-    });
-  } catch(err) {
-    console.error(err);
-    showToast('Erreur lors de l\'envoi du message vocal');
-  }
-};
-
 function stopRecordingCleanup() {
   isRecording = false;
-  if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-  if(recordingStream) { recordingStream.getTracks().forEach(t=>t.stop()); recordingStream = null; }
-  if(recTimerInterval) { clearInterval(recTimerInterval); recTimerInterval = null; }
-  if(recAnimInterval) { clearInterval(recAnimInterval); recAnimInterval = null; }
-  if(recAudioContext) { recAudioContext.close(); recAudioContext = null; }
+  if(mediaRecorder?.state!=='inactive') mediaRecorder.stop();
+  recordingStream?.getTracks().forEach(t=>t.stop()); recordingStream=null;
+  clearInterval(recTimerInterval); recTimerInterval=null;
+  clearInterval(recAnimInterval);  recAnimInterval=null;
+  recAudioContext?.close(); recAudioContext=null;
   document.getElementById('recording-bar').classList.remove('active');
-  document.getElementById('rec-timer').textContent = '0:00';
+  document.getElementById('rec-timer').textContent='0:00';
   document.getElementById('voice-btn').classList.remove('recording');
 }
 
 function getSupportedMimeType() {
-  const types = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
-  return types.find(t => MediaRecorder.isTypeSupported(t)) || '';
+  return ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4']
+    .find(t=>MediaRecorder.isTypeSupported(t)) || '';
 }
 
-async function computePeaks(blob, count) {
+async function computePeaks(blob, n) {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const arrayBuffer = await blob.arrayBuffer();
-    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-    const data = audioBuffer.getChannelData(0);
-    const blockSize = Math.floor(data.length / count);
-    const peaks = [];
-    for(let i=0;i<count;i++) {
-      let max = 0;
-      for(let j=0;j<blockSize;j++) { const v = Math.abs(data[i*blockSize+j]); if(v>max) max=v; }
-      peaks.push(+max.toFixed(3));
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+    const ch  = buf.getChannelData(0);
+    const bs  = Math.floor(ch.length/n);
+    const peaks=[];
+    for(let i=0;i<n;i++){
+      let mx=0;
+      for(let j=0;j<bs;j++){const v=Math.abs(ch[i*bs+j]);if(v>mx)mx=v;}
+      peaks.push(+mx.toFixed(3));
     }
-    ctx.close();
-    return peaks;
-  } catch(e) {
-    return generateFakePeaks(count);
-  }
+    ctx.close(); return peaks;
+  } catch(e){ return Array.from({length:n},()=>+(0.2+Math.random()*0.6).toFixed(2)); }
 }
 
-/* ══ SEND TEXT ══ */
-window.sendMsg = async () => {
-  const input = document.getElementById('msg-input');
-  const text = input.value.trim();
-  if(!text && !pendingFiles.length) return;
-  if(!currentConvId) return;
-  for(const file of pendingFiles) await uploadAndSendFile(file);
-  pendingFiles = []; renderFilePreview();
-  if(text) {
-    input.value=''; input.style.height='auto';
-    const msgRef = push(ref(db,`messages/${currentConvId}`));
-    await set(msgRef, { text, senderId:currentUser.id, senderName:currentUser.name, ts:Date.now() });
-    await update(ref(db,`conversations/${currentConvId}`), {
-      lastMsg: text.length>50?text.slice(0,50)+'…':text,
-      lastTime: Date.now()
-    });
-  }
-};
-
-/* ══ FILE HANDLING ══ */
-window.handleFileSelect = (input) => {
-  const files = Array.from(input.files);
-  if(!files.length) return;
-  pendingFiles = [...pendingFiles, ...files];
-  renderFilePreview();
-  input.value='';
-};
-
-function renderFilePreview() {
-  const zone = document.getElementById('file-preview-zone');
-  if(!pendingFiles.length) { zone.classList.remove('visible'); zone.innerHTML=''; return; }
-  zone.classList.add('visible');
-  zone.innerHTML = pendingFiles.map((f, i) => {
-    const isImg = f.type.startsWith('image/');
-    if(isImg) {
-      const url = URL.createObjectURL(f);
-      return `<div class="file-preview-chip"><img class="file-preview-img" src="${url}" alt="${esc(f.name)}" /><span>${esc(f.name)}</span><button onclick="removeFile(${i})" title="Supprimer">✕</button></div>`;
-    }
-    return `<div class="file-preview-chip"><span style="font-size:1.1rem">${fileEmoji(f.type)}</span><span>${esc(f.name)}</span><button onclick="removeFile(${i})" title="Supprimer">✕</button></div>`;
-  }).join('');
+/* ════════════════════════════════════
+   🎙️ VOICE — LECTURE
+════════════════════════════════════ */
+function buildVoiceHTML(msg) {
+  const peaks = msg.peaks || Array.from({length:40},()=>+(0.2+Math.random()*0.6).toFixed(2));
+  const bars  = peaks.map(h=>`<div class="voice-bar" style="height:${Math.max(3,h*28)}px"></div>`).join('');
+  const dur   = msg.duration ? formatDuration(msg.duration) : '0:00';
+  return `<div class="voice-msg" data-duration="${msg.duration||0}">
+    <button class="voice-play-btn" aria-label="Lire">
+      <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <div class="voice-waveform">${bars}</div>
+    <div class="voice-duration">${dur}</div>
+  </div>`;
 }
 
-window.removeFile = (i) => { pendingFiles.splice(i, 1); renderFilePreview(); };
+const activePlayers = new Map();
 
-async function uploadAndSendFile(file) {
-  showToast(`Envoi de ${file.name}…`);
-  try {
-    const path = `files/${currentConvId}/${Date.now()}_${file.name}`;
-    const storageRef = sRef(storage, path);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    const msgRef = push(ref(db,`messages/${currentConvId}`));
-    await set(msgRef, { type:'file', fileUrl:url, fileName:file.name, fileType:file.type, fileSize:file.size, senderId:currentUser.id, senderName:currentUser.name, ts:Date.now() });
-    await update(ref(db,`conversations/${currentConvId}`), { lastMsg:`📎 ${file.name}`, lastTime:Date.now() });
-  } catch(err) { console.error(err); showToast(`Erreur d'envoi pour ${file.name}`); }
+function setupVoicePlayer(wrap, msg, msgId) {
+  const el      = wrap.querySelector('.voice-msg'); if(!el) return;
+  const btn     = el.querySelector('.voice-play-btn');
+  const iPlay   = el.querySelector('.icon-play');
+  const iPause  = el.querySelector('.icon-pause');
+  const waveEl  = el.querySelector('.voice-waveform');
+  const bars    = waveEl.querySelectorAll('.voice-bar');
+  const durEl   = el.querySelector('.voice-duration');
+  const total   = msg.duration||0;
+  let audio     = null;
+  let tick      = null;
+
+  function reset() {
+    if(tick) clearInterval(tick); tick=null;
+    btn.classList.remove('playing');
+    iPlay.style.display=''; iPause.style.display='none';
+    bars.forEach(b=>b.classList.remove('played'));
+    if(total>0) durEl.textContent = formatDuration(total);
+    activePlayers.delete(msgId);
+  }
+
+  function stopOthers() {
+    for(const [id,p] of activePlayers) { if(id!==msgId){ p.reset(); } }
+  }
+
+  btn.addEventListener('click', () => {
+    if(!audio){
+      audio = new Audio(msg.fileUrl);
+      audio.addEventListener('ended', reset);
+      audio.addEventListener('error', ()=>{ showToast('❌ Lecture impossible'); reset(); });
+    }
+    if(audio.paused){
+      stopOthers();
+      audio.play().catch(()=>showToast('❌ Lecture impossible'));
+      btn.classList.add('playing'); iPlay.style.display='none'; iPause.style.display='';
+      tick = setInterval(()=>{
+        const d   = audio.duration||total||1;
+        const p   = audio.currentTime/d;
+        const act = Math.floor(p*bars.length);
+        bars.forEach((b,i)=>i<act?b.classList.add('played'):b.classList.remove('played'));
+        durEl.textContent = formatDuration(Math.max(0, d-audio.currentTime));
+      }, 80);
+      activePlayers.set(msgId, {reset});
+    } else {
+      audio.pause(); reset();
+    }
+  });
+
+  waveEl.addEventListener('click', e => {
+    if(!audio||!audio.duration) return;
+    const r = waveEl.getBoundingClientRect();
+    audio.currentTime = ((e.clientX-r.left)/r.width) * audio.duration;
+  });
 }
 
 /* ══ GROUPS ══ */
 window.openNewGroup = () => {
-  const listEl = document.getElementById('contact-select-list');
-  listEl.innerHTML = Object.entries(allUsers).filter(([id])=>id!==currentUser.id)
-    .map(([id,u])=>`<label class="contact-select-item"><input type="checkbox" value="${id}" /> ${esc(u.name)}</label>`).join('')
-    || '<div class="empty-list" style="padding:16px">Aucun contact trouvé</div>';
+  document.getElementById('contact-select-list').innerHTML =
+    Object.entries(allUsers).filter(([id])=>id!==currentUser.id)
+      .map(([id,u])=>`<label class="contact-select-item"><input type="checkbox" value="${id}"/> ${esc(u.name)}</label>`).join('')
+    ||'<div class="empty-list" style="padding:16px">Aucun contact</div>';
   document.getElementById('group-modal').classList.add('open');
 };
 window.createGroup = async () => {
-  const name = document.getElementById('group-name-input').value.trim();
-  if(!name) { showToast('Entrez un nom de groupe'); return; }
+  const name    = document.getElementById('group-name-input').value.trim();
+  if(!name){ showToast('Entrez un nom'); return; }
   const checked = [...document.querySelectorAll('#contact-select-list input:checked')].map(i=>i.value);
-  if(!checked.length) { showToast('Sélectionnez au moins un membre'); return; }
-  const members = { [currentUser.id]:true };
+  if(!checked.length){ showToast('Sélectionnez au moins un membre'); return; }
+  const members = {[currentUser.id]:true};
   checked.forEach(id=>members[id]=true);
-  const newRef = push(ref(db,'conversations'));
-  await set(newRef, { type:'group', name, members, lastMsg:'Groupe créé', lastTime:Date.now() });
+  const nr = push(ref(db,'conversations'));
+  await set(nr,{type:'group',name,members,lastMsg:'Groupe créé',lastTime:Date.now()});
   document.getElementById('group-name-input').value='';
   closeModal('group-modal');
   showToast(`Groupe "${name}" créé !`);
-  openConv(newRef.key);
+  openConv(nr.key);
 };
 
 window.openAddMember = () => {
-  if(!currentConvId) return;
-  const conv = conversations[currentConvId];
-  if(!conv || conv.type!=='group') return;
-  const currentMemberIds = Object.keys(conv.members||{});
-  document.getElementById('current-members-list').innerHTML = currentMemberIds.map(id => `<span class="member-chip">${esc((allUsers[id]||{}).name || id)}</span>`).join('');
-  const candidates = Object.entries(allUsers).filter(([id])=>!currentMemberIds.includes(id));
-  const addList = document.getElementById('add-member-select-list');
-  if(!candidates.length) { addList.innerHTML = '<div class="empty-list" style="padding:16px">Tous les utilisateurs sont déjà membres</div>'; }
-  else { addList.innerHTML = candidates.map(([id,u])=>`<label class="contact-select-item"><input type="checkbox" value="${id}" /> ${esc(u.name)}</label>`).join(''); }
+  const conv = conversations[currentConvId]; if(!conv||conv.type!=='group') return;
+  const mids = Object.keys(conv.members||{});
+  document.getElementById('current-members-list').innerHTML =
+    mids.map(id=>`<span class="member-chip">${esc((allUsers[id]||{}).name||id)}</span>`).join('');
+  const cands = Object.entries(allUsers).filter(([id])=>!mids.includes(id));
+  document.getElementById('add-member-select-list').innerHTML = cands.length
+    ? cands.map(([id,u])=>`<label class="contact-select-item"><input type="checkbox" value="${id}"/> ${esc(u.name)}</label>`).join('')
+    : '<div class="empty-list" style="padding:16px">Tous déjà membres</div>';
   document.getElementById('add-member-modal').classList.add('open');
 };
 window.confirmAddMembers = async () => {
-  if(!currentConvId) return;
   const checked = [...document.querySelectorAll('#add-member-select-list input:checked')].map(i=>i.value);
-  if(!checked.length) { showToast('Sélectionnez au moins un utilisateur'); return; }
-  const updates = {};
-  checked.forEach(id => { updates[`conversations/${currentConvId}/members/${id}`] = true; });
-  await update(ref(db), updates);
+  if(!checked.length){ showToast('Sélectionnez au moins un utilisateur'); return; }
+  const upd={}; checked.forEach(id=>upd[`conversations/${currentConvId}/members/${id}`]=true);
+  await update(ref(db),upd);
   const names = checked.map(id=>(allUsers[id]||{}).name||id).join(', ');
-  const msgRef = push(ref(db,`messages/${currentConvId}`));
-  await set(msgRef, { text:`👥 ${currentUser.name} a ajouté ${names}`, senderId:'system', senderName:'Système', ts:Date.now() });
+  const mr    = push(ref(db,`messages/${currentConvId}`));
+  await set(mr,{text:`👥 ${currentUser.name} a ajouté ${names}`,senderId:'system',senderName:'Système',ts:Date.now()});
   closeModal('add-member-modal');
   showToast(`${checked.length} membre${checked.length>1?'s':''} ajouté${checked.length>1?'s':''} !`);
 };
 
 /* ══ LIGHTBOX ══ */
-window.openLightbox = (url) => { document.getElementById('lightbox-img').src = url; document.getElementById('lightbox').classList.add('open'); };
-window.closeLightbox = () => { document.getElementById('lightbox').classList.remove('open'); };
+window.openLightbox  = url => { document.getElementById('lightbox-img').src=url; document.getElementById('lightbox').classList.add('open'); };
+window.closeLightbox = ()  => document.getElementById('lightbox').classList.remove('open');
 
-/* ══ TABS ══ */
-window.switchTab = (tab, btn) => { currentTab = tab; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderConvList(); };
+/* ══ TABS / SEARCH ══ */
+window.switchTab   = (tab,btn) => { currentTab=tab; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderConvList(); };
 window.filterConvs = () => renderConvList();
 
 /* ══ UTILS ══ */
-window.closeModal = id => document.getElementById(id).classList.remove('open');
-window.autoResize = el => { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; };
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function formatTime(ts) { if(!ts) return ''; const d=new Date(ts), now=new Date(); if(d.toDateString()===now.toDateString()) return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }
-function formatSize(bytes) { if(bytes<1024) return `${bytes} o`; if(bytes<1048576) return `${(bytes/1024).toFixed(1)} Ko`; return `${(bytes/1048576).toFixed(1)} Mo`; }
-function formatDuration(secs) { const m=Math.floor(secs/60); const s=Math.floor(secs%60); return `${m}:${String(s).padStart(2,'0')}`; }
-function fileEmoji(type) { if(!type) return '📄'; if(type.startsWith('image/')) return '🖼️'; if(type.startsWith('video/')) return '🎬'; if(type.startsWith('audio/')) return '🎵'; if(type.includes('pdf')) return '📕'; if(type.includes('word')||type.includes('doc')) return '📝'; if(type.includes('excel')||type.includes('sheet')||type.includes('xls')) return '📊'; if(type.includes('zip')||type.includes('rar')||type.includes('archive')) return '🗜️'; return '📄'; }
-function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); }
+window.closeModal  = id => document.getElementById(id).classList.remove('open');
+window.autoResize  = el => { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; };
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatTime(ts){ if(!ts)return''; const d=new Date(ts),n=new Date(); return d.toDateString()===n.toDateString()?d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}); }
+function formatSize(b){ return b<1024?`${b} o`:b<1048576?`${(b/1024).toFixed(1)} Ko`:`${(b/1048576).toFixed(1)} Mo`; }
+function formatDuration(s){ return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`; }
+function fileEmoji(t){ if(!t)return'📄'; if(t.startsWith('image/'))return'🖼️'; if(t.startsWith('video/'))return'🎬'; if(t.startsWith('audio/'))return'🎵'; if(t.includes('pdf'))return'📕'; if(t.includes('word')||t.includes('doc'))return'📝'; if(t.includes('excel')||t.includes('sheet')||t.includes('xls'))return'📊'; if(t.includes('zip')||t.includes('rar'))return'🗜️'; return'📄'; }
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); }
 
-document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', e => { if(e.target === overlay) overlay.classList.remove('open'); }); });
-window.addEventListener('resize', () => { if(!isMobile()) { document.getElementById('sidebar').classList.remove('slide-out'); document.getElementById('chat-area').classList.remove('slide-in'); } });
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
+window.addEventListener('resize',()=>{ if(!isMobile()){ document.getElementById('sidebar').classList.remove('slide-out'); document.getElementById('chat-area').classList.remove('slide-in'); } });
 </script>
 </body>
 </html>
