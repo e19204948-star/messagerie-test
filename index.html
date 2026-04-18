@@ -437,6 +437,26 @@
   .modal { background:var(--bg2); border:1px solid var(--border); border-radius:20px; padding:28px; width:min(380px, 100%); box-shadow:var(--shadow); animation: slideUp .3s ease; max-height:90vh; overflow-y:auto; }
   .modal h3 { font-size:1.1rem; font-weight:600; margin-bottom:20px; }
   .modal-actions { display:flex; gap:10px; margin-top:20px; }
+
+  /* ── CALL UI ── */
+  #call-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(124,106,255,0.1), rgba(20,20,40,0.95)); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); overflow-y: auto; padding: 20px; }
+  #call-overlay.visible { display: flex; }
+  .call-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 24px; padding: 40px 20px; text-align: center; max-width: 320px; animation: slideUp .3s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+  .call-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); margin: 0 auto 16px; font-size: 32px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; }
+  .call-name { font-size: 1.4rem; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .call-status { font-size: 0.9rem; color: var(--text2); margin-bottom: 24px; animation: pulse 2s infinite; }
+  .call-direction { display: flex; gap: 16px; justify-content: center; margin-bottom: 24px; }
+  .call-accept-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--success); border: none; color: white; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; transition: all .2s; box-shadow: 0 4px 16px rgba(52,211,153,0.3); }
+  .call-accept-btn:hover { background: #2dd4bf; box-shadow: 0 6px 20px rgba(52,211,153,0.4); transform: scale(1.05); }
+  .call-reject-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--danger); border: none; color: white; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; transition: all .2s; box-shadow: 0 4px 16px rgba(248,113,113,0.3); }
+  .call-reject-btn:hover { background: #f87171; box-shadow: 0 6px 20px rgba(248,113,113,0.4); transform: scale(1.05); }
+  .call-controls { display: flex; gap: 12px; justify-content: center; }
+  .call-mute-btn, .call-end-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+  .call-mute-btn:hover, .call-end-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+  .call-mute-btn.muted { background: var(--danger); border-color: var(--danger); color: white; }
+  .call-end-btn { background: var(--danger); border-color: var(--danger); color: white; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
   .btn-secondary { flex:1; padding:11px; background:var(--bg3); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:500; cursor:pointer; transition: background .2s; }
   .btn-secondary:hover { background:var(--bg4); }
   .contact-select-list { max-height:200px; overflow-y:auto; border:1px solid var(--border); border-radius:10px; margin-top:12px; }
@@ -643,6 +663,9 @@
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
         ></textarea>
         <!-- 🎙️ VOICE BUTTON -->
+        <button class="voice-btn" id="call-btn" onclick="initiateCall()" title="Appel audio">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </button>
         <button class="voice-btn" id="voice-btn" onclick="toggleRecording()" title="Message vocal">
           <svg id="voice-btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </button>
@@ -744,7 +767,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getDatabase, ref, set, get, push, onValue, off,
-  query, orderByChild, onChildAdded, update
+  query, orderByChild, onChildAdded, update, limitToLast
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -795,6 +818,15 @@ let recAnalyser      = null;
 let recBars          = [];
 let isRecording      = false;
 let pendingVoiceMime = '';
+
+/* ══ AUDIO CALL STATE ══ */
+let peerConnections  = {}; // {userId: RTCPeerConnection}
+let localStream      = null; // local audio/video stream
+let remoteStreams    = {}; // {userId: MediaStream}
+let callState        = null; // 'idle','calling','incoming','connected'
+let callTimeout      = null;
+let currentCallUser  = null; // userId of current call
+const ICE_SERVERS    = [{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
 
 /* ══ PWA ══ */
 let deferredPrompt = null;
@@ -1048,7 +1080,9 @@ function startApp(user) {
   document.getElementById('app-screen').classList.add('active');
   document.getElementById('my-name-el').textContent = user.name;
   document.getElementById('my-avatar-el').textContent = user.name[0];
-  loadUsers(); loadConversations();
+  loadUsers(); 
+  loadConversations();
+  setupCallListener();
   window.addEventListener('beforeunload', () => update(ref(db,`users/${currentUser.id}`),{online:false}));
 }
 
@@ -1149,12 +1183,21 @@ function renderConvList() {
 /* ══ MOBILE NAV ══ */
 const isMobile = () => window.innerWidth <= 700;
 function showChatPanel(){ if(isMobile()){ document.getElementById('sidebar').classList.add('slide-out'); document.getElementById('chat-area').classList.add('slide-in'); } }
-window.backToList = () => { document.getElementById('sidebar').classList.remove('slide-out'); document.getElementById('chat-area').classList.remove('slide-in'); currentConvId=null; };
+window.backToList = () => { 
+  document.getElementById('sidebar').classList.remove('slide-out'); 
+  document.getElementById('chat-area').classList.remove('slide-in'); 
+  const callBtn = document.getElementById('call-btn');
+  if(callBtn) callBtn.style.display = 'none';
+  currentConvId=null; 
+};
 
 window.openConv = id => {
   currentConvId = id;
   const c = conversations[id]; if(!c) return;
   showChatView(c); listenMessages(id); renderConvList(); showChatPanel();
+  // Show call button only for direct conversations
+  const callBtn = document.getElementById('call-btn');
+  if(callBtn) callBtn.style.display = c.type === 'direct' ? 'flex' : 'none';
 };
 window.openDirectNew = async (oid, oname) => {
   const snap = await get(ref(db,'conversations'));
@@ -1293,6 +1336,323 @@ async function sendFile(file) {
     await set(mr,{type:'file',fileUrl:dataURL,fileName:file.name,fileType:file.type,fileSize:file.size,senderId:currentUser.id,senderName:currentUser.name,ts:Date.now()});
     await update(ref(db,`conversations/${currentConvId}`),{lastMsg:`📎 ${file.name}`,lastTime:Date.now()});
   } catch(e){ console.error(e); showToast(`❌ Erreur d'envoi : ${file.name}`); }
+}
+
+/* ════════════════════════════════════
+   📞 AUDIO CALLING — WEBRTC 
+════════════════════════════════════ */
+
+async function getLocalStream() {
+  if(localStream) return;
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
+    console.log('✅ Microphone access granted');
+  } catch(e) {
+    console.error('❌ Mic access denied:', e);
+    showToast('🎤 Accès microphone refusé');
+    throw e;
+  }
+}
+
+async function createPeerConnection(userId) {
+  if(peerConnections[userId]) return peerConnections[userId];
+  
+  const pc = new RTCPeerConnection({iceServers: ICE_SERVERS});
+  
+  // Add local audio tracks to connection
+  if(localStream) {
+    localStream.getTracks().forEach(track => {
+      pc.addTrack(track, localStream);
+    });
+  }
+  
+  // Handle incoming remote audio
+  pc.ontrack = (event) => {
+    console.log('📞 Remote audio received from', userId);
+    remoteStreams[userId] = event.streams[0];
+    playRemoteAudio(userId, event.streams[0]);
+  };
+  
+  // Handle ICE candidates
+  pc.onicecandidate = (event) => {
+    if(event.candidate) {
+      set(ref(db, `calls/${currentCallUser}/${userId}/candidates/${Date.now()}`), {
+        candidate: JSON.stringify(event.candidate)
+      });
+    }
+  };
+  
+  // Monitor connection state
+  pc.onconnectionstatechange = () => {
+    console.log('🔌 Connection state:', pc.connectionState);
+    if(pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+      endCall();
+    }
+  };
+  
+  peerConnections[userId] = pc;
+  return pc;
+}
+
+window.initiateCall = async function() {
+  if(!currentConvId) {
+    showToast('Sélectionnez une conversation');
+    return;
+  }
+  
+  const conv = conversations[currentConvId];
+  if(conv.type !== 'direct') {
+    showToast('Les appels ne fonctionnent qu\'en conversation directe');
+    return;
+  }
+  
+  const otherUserId = Object.keys(conv.members || {}).find(m => m !== currentUser.id);
+  if(!otherUserId) {
+    showToast('Impossible de trouver le destinataire');
+    return;
+  }
+  
+  if(callState && callState !== 'idle') {
+    showToast('Un appel est déjà en cours');
+    return;
+  }
+  
+  try {
+    callState = 'calling';
+    currentCallUser = otherUserId;
+    
+    // Get microphone access
+    await getLocalStream();
+    
+    // Create peer connection
+    const pc = await createPeerConnection(otherUserId);
+    
+    // Create and send offer
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    
+    // Send call signal through Firebase
+    await set(ref(db, `calls/${currentUser.id}/${otherUserId}`), {
+      type: 'offer',
+      offer: JSON.stringify(offer),
+      from: currentUser.id,
+      fromName: currentUser.name,
+      timestamp: Date.now(),
+      status: 'calling'
+    });
+    
+    showToast(`📞 Appel en cours vers ${allUsers[otherUserId]?.name || 'l\'utilisateur'}…`);
+    showCallUI(otherUserId, 'outgoing');
+    
+    // Timeout after 30 seconds
+    callTimeout = setTimeout(() => {
+      if(callState === 'calling') {
+        showToast('❌ Appel non répondu');
+        window.endCall();
+      }
+    }, 30000);
+    
+  } catch(e) {
+    console.error('Call error:', e);
+    showToast('❌ Erreur lors de l\'appel');
+    callState = 'idle';
+  }
+}
+
+window.handleIncomingCall = async function(fromUserId, callData) {
+  if(callState && callState !== 'idle') {
+    // Busy - reject
+    await set(ref(db, `calls/${fromUserId}/${currentUser.id}`), {
+      type: 'rejected',
+      reason: 'user_busy',
+      timestamp: Date.now()
+    });
+    return;
+  }
+  
+  callState = 'incoming';
+  currentCallUser = fromUserId;
+  
+  try {
+    await getLocalStream();
+    const pc = await createPeerConnection(fromUserId);
+    
+    const offer = JSON.parse(callData.offer);
+    await pc.setRemoteDescription(new RTCSessionDescription(offer));
+    
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    
+    await set(ref(db, `calls/${currentUser.id}/${fromUserId}`), {
+      type: 'answer',
+      answer: JSON.stringify(answer),
+      from: currentUser.id,
+      timestamp: Date.now(),
+      status: 'connected'
+    });
+    
+    callState = 'connected';
+    showToast('✅ Appel connecté');
+    showCallUI(fromUserId, 'incoming');
+    
+  } catch(e) {
+    console.error('Answer error:', e);
+    showToast('❌ Erreur de connexion');
+    window.endCall();
+  }
+};
+
+window.handleCallAnswer = async function(toUserId, answerData) {
+  const pc = peerConnections[toUserId];
+  if(!pc) return;
+  
+  try {
+    const answer = JSON.parse(answerData.answer);
+    await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    callState = 'connected';
+    showToast('✅ Appel connecté');
+  } catch(e) {
+    console.error('Answer set error:', e);
+  }
+};
+
+function playRemoteAudio(userId, stream) {
+  let audio = document.getElementById(`remote-audio-${userId}`);
+  if(!audio) {
+    audio = document.createElement('audio');
+    audio.id = `remote-audio-${userId}`;
+    audio.autoplay = true;
+    audio.playsinline = true;
+    document.body.appendChild(audio);
+  }
+  audio.srcObject = stream;
+  audio.play().catch(e => console.log('Autoplay blocked:', e));
+}
+
+function showCallUI(userId, direction) {
+  const overlay = document.getElementById('call-overlay') || createCallOverlay();
+  const userName = (allUsers[userId] || {}).name || 'Utilisateur';
+  const avatar = overlay.querySelector('.call-avatar');
+  const nameEl = overlay.querySelector('.call-name');
+  const statusEl = overlay.querySelector('.call-status');
+  const directionEl = overlay.querySelector('.call-direction');
+  
+  avatar.textContent = userName[0].toUpperCase();
+  nameEl.textContent = userName;
+  statusEl.textContent = direction === 'incoming' ? `Appel entrant de ${userName}…` : `Appel en cours avec ${userName}…`;
+  directionEl.style.display = direction === 'incoming' ? 'flex' : 'none';
+  
+  overlay.classList.add('visible');
+}
+
+function createCallOverlay() {
+  const overlay = document.createElement('div');
+  overlay.id = 'call-overlay';
+  overlay.innerHTML = `
+    <div class="call-panel">
+      <div class="call-avatar" id="call-avatar"></div>
+      <div class="call-name" id="call-name"></div>
+      <div class="call-status"></div>
+      <div class="call-direction">
+        <button class="call-accept-btn" onclick="acceptCall()" title="Accepter">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </button>
+        <button class="call-reject-btn" onclick="rejectCall()" title="Refuser">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="call-controls">
+        <button class="call-mute-btn" onclick="toggleMute()" title="Muet">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+        </button>
+        <button class="call-end-btn" onclick="endCall()" title="Terminer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+  
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7); display: none; align-items: center; 
+    justify-content: center; z-index: 200; backdrop-filter: blur(4px);
+  `;
+  
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+window.acceptCall = async () => {
+  if(callState !== 'incoming') return;
+  callState = 'connected';
+  showToast('✅ Appel accepté');
+};
+
+window.rejectCall = async () => {
+  if(!currentCallUser) return;
+  await set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), {
+    type: 'rejected',
+    timestamp: Date.now()
+  });
+  endCall();
+  showToast('Appel refusé');
+};
+
+window.toggleMute = () => {
+  if(!localStream) return;
+  const isMuted = localStream.getAudioTracks()[0]?.enabled === false;
+  localStream.getAudioTracks().forEach(track => {
+    track.enabled = !track.enabled;
+  });
+  const btn = document.querySelector('.call-mute-btn');
+  if(btn) btn.classList.toggle('muted');
+};
+
+window.endCall = () => {
+  if(callTimeout) clearTimeout(callTimeout);
+  if(currentCallUser) {
+    set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), {
+      type: 'ended',
+      timestamp: Date.now()
+    });
+  }
+  
+  // Close peer connections
+  for(const [userId, pc] of Object.entries(peerConnections)) {
+    pc.close();
+  }
+  peerConnections = {};
+  remoteStreams = {};
+  
+  // Stop local stream
+  if(localStream) {
+    localStream.getTracks().forEach(t => t.stop());
+    localStream = null;
+  }
+  
+  // Remove remote audio elements
+  document.querySelectorAll('[id^="remote-audio-"]').forEach(el => el.remove());
+  
+  callState = 'idle';
+  currentCallUser = null;
+  const overlay = document.getElementById('call-overlay');
+  if(overlay) overlay.classList.remove('visible');
+};
+
+// Listen for incoming calls
+function setupCallListener() {
+  onValue(ref(db, `calls/${currentUser.id}`), snap => {
+    const callsData = snap.val() || {};
+    for(const [fromUserId, callData] of Object.entries(callsData)) {
+      if(callData && typeof callData === 'object' && !Array.isArray(callData)) {
+        if(callData.type === 'offer' && callData.status === 'calling') {
+          window.handleIncomingCall(fromUserId, callData);
+        } else if(callData.type === 'answer' && callData.status === 'connected') {
+          window.handleCallAnswer(fromUserId, callData);
+        }
+      }
+    }
+  });
 }
 
 /* ════════════════════════════════════
