@@ -499,6 +499,50 @@
   .current-members { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
   .member-chip { background:var(--accent-glow); border:1px solid var(--accent); border-radius:20px; padding:3px 10px; font-size:.78rem; color:var(--accent); font-weight:500; }
   #file-input { display:none; }
+
+  /* ════════════════════
+     📹 VIDEO CALLING
+  ════════════════════ */
+  .video-btn { background: none; border:none; color:var(--text2); cursor:pointer; padding:7px;
+    border-radius:8px; display:flex; align-items:center;
+    transition: background .15s, color .15s; -webkit-tap-highlight-color: transparent;
+    flex-shrink:0;
+  }
+  .video-btn:hover { background:var(--bg4); color:var(--accent); }
+
+  .video-container {
+    position:fixed; inset:0; background:rgba(0,0,0,.95); z-index:1001;
+    display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+  }
+  .video-container.active { display:flex; }
+  .video-grid { display:flex; gap:16px; align-items:center; justify-content:center; flex-wrap:wrap; }
+  .video-element {
+    width:280px; height:280px; background:#000; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  }
+  .video-element.local { border:2px solid var(--accent); }
+  .video-element video { width:100%; height:100%; object-fit:cover; }
+
+  .recording-badge { display:none; position:fixed; top:20px; right:20px; background:var(--danger);
+    color:#fff; padding:8px 12px; border-radius:20px; font-size:.75rem; font-weight:600;
+    z-index:998; animation: pulse 1s ease infinite; gap:6px; align-items:center;
+  }
+  .recording-badge.active { display:flex; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.6; } }
+
+  /* ════════════════════
+     ⌨️ TYPING INDICATOR
+  ════════════════════ */
+  .typing-indicator { display:flex; gap:3px; padding:4px 0; }
+  .typing-dot { width:6px; height:6px; border-radius:50%; background:var(--text2);
+    animation: typing 1.4s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: .2s; }
+  .typing-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes typing { 0%,60%,100% { opacity:.3; transform:translateY(0); }
+    30% { opacity:1; transform:translateY(-6px); }
+  }
 </style>
 </head>
 <body>
@@ -631,6 +675,9 @@
         <button class="call-btn" id="call-btn" onclick="initiateCall()" title="Appel audio" style="display:none">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         </button>
+        <button class="video-btn" id="video-btn" onclick="toggleVideoCall()" title="Appel vidéo" style="display:none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </button>
       </div>
       <div class="messages-container" id="messages-container"></div>
       <div class="file-preview-zone" id="file-preview-zone"></div>
@@ -688,8 +735,54 @@
   </div>
 </div>
 
-<!-- ══ ADD MEMBER MODAL ══ -->
-<div class="modal-overlay" id="add-member-modal">
+<!-- ══ CALL HISTORY MODAL ══ -->
+<div class="modal-overlay" id="call-history-modal">
+  <div class="modal">
+    <h3>📞 Historique des appels</h3>
+    <div id="call-history-list" style="max-height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:16px;">
+      <div class="empty-list" style="padding:20px; text-align:center; color:var(--text2);">Aucun appel enregistré</div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:.85rem; padding:12px; background:var(--bg3); border-radius:10px; margin-bottom:16px;">
+      <div><span style="color:var(--text2);">Appels totaux:</span> <strong id="stat-total-calls">0</strong></div>
+      <div><span style="color:var(--text2);">Durée totale:</span> <strong id="stat-total-duration">0:00</strong></div>
+      <div><span style="color:var(--text2);">Appels manqués:</span> <strong id="stat-missed-calls">0</strong></div>
+      <div><span style="color:var(--text2);">Durée moyenne:</span> <strong id="stat-avg-duration">0:00</strong></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('call-history-modal')">Fermer</button>
+      <button class="btn-primary" style="flex:1" onclick="clearCallHistory()">Effacer l'historique</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS MODAL ══ -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>⚙️ Paramètres</h3>
+    <div class="input-group">
+      <label>Notifications</label>
+      <input type="checkbox" id="notifications-toggle" checked style="width:auto; margin:8px 0;"/> Activer les notifications
+    </div>
+    <div class="input-group">
+      <label>Qualité audio</label>
+      <select id="audio-quality" style="width:100%; padding:8px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; color:var(--text);">
+        <option value="low">Faible (pour connexion lente)</option>
+        <option value="medium" selected>Normal</option>
+        <option value="high">Élevée</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label>Afficher l'historique des appels au démarrage</label>
+      <input type="checkbox" id="show-history-startup" style="width:auto; margin:8px 0;"/>
+    </div>
+    <div style="font-size:.8rem; color:var(--text2); padding:12px; background:var(--bg3); border-radius:8px; margin-bottom:16px;">
+      ℹ️ La vie privée est importante - vos messages sont chiffrés en local avant transmission.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('settings-modal')">Fermer</button>
+    </div>
+  </div>
+</div>
   <div class="modal">
     <h3>Ajouter des membres</h3>
     <div id="current-members-section">
@@ -731,13 +824,42 @@
   <div class="call-info">
     <div class="call-info-name" id="active-call-name"></div>
     <div class="call-info-duration" id="call-duration">0:00</div>
+    <div style="font-size:.7rem; color:var(--text2); margin-top:2px" id="call-status-text"></div>
   </div>
   <div class="call-controls">
     <button class="call-control-btn call-mute-btn" id="mute-btn" onclick="toggleMute()" title="Activer/Désactiver le micro">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
     </button>
+    <button class="call-control-btn" id="video-toggle-btn" onclick="toggleCallVideo()" style="display:none; background:var(--bg3); border:1px solid var(--border); color:var(--text);" title="Activer/Désactiver la vidéo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+    </button>
+    <button class="call-control-btn" id="record-btn" onclick="toggleCallRecording()" style="display:none; background:var(--bg3); border:1px solid var(--border); color:var(--text);" title="Enregistrer l'appel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
+    </button>
     <button class="call-control-btn call-end-btn" onclick="endCall()" title="Terminer l'appel">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><line x1="18" y1="6" x2="6" y2="18" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- 📹 VIDEO CONTAINER -->
+<div class="video-container" id="video-container">
+  <div style="position:absolute; top:20px; left:20px; color:#fff; text-align:left;">
+    <div style="font-size:.9rem; font-weight:600; margin-bottom:4px;" id="video-call-name"></div>
+    <div style="font-size:.8rem; color:rgba(255,255,255,.6);" id="video-call-status">Connexion…</div>
+  </div>
+  <button onclick="closeVideo()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:#fff; cursor:pointer; padding:8px; font-size:1.5rem; line-height:1;">✕</button>
+  <div class="recording-badge" id="recording-badge"><span style="font-size:.6rem; line-height:1;">⏺</span> REC</div>
+  <div class="video-grid" id="video-grid"></div>
+  <div class="call-controls" style="gap:12px; position:absolute; bottom:20px;">
+    <button class="call-control-btn" id="video-call-mic" onclick="toggleMute()" style="background:var(--bg3); border:1px solid var(--border); color:var(--text);" title="Micro">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+    </button>
+    <button class="call-control-btn" id="video-call-record" onclick="toggleCallRecording()" style="background:var(--bg3); border:1px solid var(--border); color:var(--text);" title="Enregistrer">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
+    </button>
+    <button class="call-control-btn call-end-btn" onclick="endCall()" title="Terminer">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><line x1="18" y1="6" x2="6" y2="18" stroke="white" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="white" stroke-width="2"/></svg>
     </button>
   </div>
 </div>
@@ -829,6 +951,19 @@ let callDurationInterval = null;
 let incomingCallId   = null;
 let callListeners    = {};
 let signalingChannel = null;
+
+/* ══ VIDEO CALL STATE ══ */
+let isVideoEnabled   = false;
+let remoteStreams    = {};
+let videoElement     = null;
+let isCallRecording  = false;
+let recordedChunks   = [];
+let callRecorder     = null;
+
+/* ══ ENCRYPTION & TYPING ══ */
+let encryptionKey    = null;
+let typingTimeout    = null;
+let usersTyping      = {};
 
 /* ══ PWA ══ */
 let deferredPrompt = null;
@@ -1028,7 +1163,12 @@ function setupPeerConnection(isCaller) {
 
   // Handle remote stream
   peerConnection.ontrack = (event) => {
+    console.log('Received remote track:', event.track.kind);
     if (event.streams && event.streams[0]) {
+      remoteStreams[currentCallUserId] = event.streams[0];
+      if (isVideoEnabled) {
+        renderVideoGrid();
+      }
       const remoteAudio = new Audio();
       remoteAudio.srcObject = event.streams[0];
       remoteAudio.play().catch(e => console.log('Auto-play prevented:', e));
@@ -1058,10 +1198,15 @@ function setupPeerConnection(isCaller) {
     if (peerConnection.connectionState === 'connected' || peerConnection.connectionState === 'completed') {
       const contactName = (allUsers[currentCallUserId] || {}).name || 'Appel';
       document.getElementById('active-call-name').textContent = contactName;
-      startCallDurationTimer();
+      if (!callStartTime) startCallDurationTimer();
       document.getElementById('active-call-panel').classList.add('show');
+      if (isVideoEnabled) showVideo();
     }
     if (['failed', 'disconnected', 'closed'].includes(peerConnection.connectionState)) {
+      if (callStartTime && currentCallId) {
+        const duration = Math.floor((Date.now() - callStartTime) / 1000);
+        trackCallHistory(currentCallId, currentCallUserId, duration, false);
+      }
       endCall();
     }
   };
@@ -1193,6 +1338,12 @@ function stopCallCleanup() {
     localStream = null;
   }
 
+  // Stop remote streams
+  for (const stream of Object.values(remoteStreams)) {
+    stream.getTracks().forEach(track => track.stop());
+  }
+  remoteStreams = {};
+
   // Close peer connection
   if (peerConnection) {
     peerConnection.close();
@@ -1216,11 +1367,14 @@ function stopCallCleanup() {
   // Hide UI
   document.getElementById('active-call-panel').classList.remove('show');
   document.getElementById('incoming-call-modal').classList.remove('show');
+  document.getElementById('recording-badge').classList.remove('active');
+  document.getElementById('video-container').classList.remove('active');
   
   currentCallId = null;
   currentCallUserId = null;
   callStartTime = null;
   isCallMuted = false;
+  isVideoEnabled = false;
   incomingCallId = null;
 }
 
@@ -1868,6 +2022,447 @@ window.DEBUG_CALL_STATUS = () => {
   console.log('All Users:', allUsers);
   console.log('Call Listeners:', callListeners);
 };
+
+/* ════════════════════════════════════
+   📹 VIDEO CALLING
+════════════════════════════════════ */
+window.toggleVideoCall = async () => {
+  const conv = conversations[currentConvId];
+  if (!conv || conv.type !== 'direct') {
+    showToast('Appels vidéo disponibles en conversation directe seulement');
+    return;
+  }
+  
+  const recipientId = Object.keys(conv.members || {}).find(m => m !== currentUser.id);
+  if (!recipientId) return;
+  
+  const recipientUser = allUsers[recipientId];
+  if (!recipientUser?.online) {
+    showToast(recipientUser?.name + ' est hors ligne');
+    return;
+  }
+  
+  showToast('Initialisation de l\'appel vidéo…');
+  
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { width: 640, height: 480 } });
+    isVideoEnabled = true;
+    
+    const callRef = push(ref(db, `calls`));
+    currentCallId = callRef.key;
+    currentCallUserId = recipientId;
+    
+    document.getElementById('video-call-name').textContent = recipientUser.name;
+    
+    await set(callRef, {
+      callerId: currentUser.id,
+      callerName: currentUser.name,
+      recipientId: recipientId,
+      status: 'initiating',
+      isVideo: true,
+      startTime: Date.now(),
+      conversationId: currentConvId,
+      iceSerial: 0
+    });
+    
+    setupPeerConnection(true);
+    listenForCallSignals();
+    showVideo();
+    showToast('Appel vidéo en cours…');
+  } catch (e) {
+    console.error('Error initiating video call:', e);
+    showToast('❌ Accès à la caméra refusé');
+    endCall();
+  }
+};
+
+window.toggleCallVideo = async () => {
+  if (!currentCallId || !peerConnection) return;
+  
+  isVideoEnabled = !isVideoEnabled;
+  
+  if (isVideoEnabled) {
+    try {
+      const videoTrack = (await navigator.mediaDevices.getUserMedia({ video: true })).getVideoTracks()[0];
+      const sender = peerConnection.getSenders().find(s => s.track?.kind === 'video');
+      if (sender) {
+        await sender.replaceTrack(videoTrack);
+      } else {
+        peerConnection.addTrack(videoTrack, localStream);
+      }
+      showToast('Vidéo activée');
+    } catch (e) {
+      showToast('❌ Erreur accès caméra');
+      isVideoEnabled = false;
+    }
+  } else {
+    const sender = peerConnection.getSenders().find(s => s.track?.kind === 'video');
+    if (sender && sender.track) {
+      sender.track.stop();
+      await sender.replaceTrack(null);
+    }
+    showToast('Vidéo désactivée');
+  }
+  
+  document.getElementById('video-toggle-btn').style.opacity = isVideoEnabled ? '1' : '0.5';
+};
+
+window.showVideo = () => {
+  document.getElementById('video-container').classList.add('active');
+  renderVideoGrid();
+};
+
+window.closeVideo = () => {
+  document.getElementById('video-container').classList.remove('active');
+};
+
+function renderVideoGrid() {
+  const grid = document.getElementById('video-grid');
+  grid.innerHTML = '';
+  
+  // Local video
+  if (localStream?.getVideoTracks().length) {
+    const localDiv = document.createElement('div');
+    localDiv.className = 'video-element local';
+    const video = document.createElement('video');
+    video.srcObject = localStream;
+    video.autoplay = true;
+    video.muted = true;
+    video.playsinline = true;
+    localDiv.appendChild(video);
+    const label = document.createElement('div');
+    label.style.cssText = 'position:absolute; bottom:8px; left:8px; background:rgba(0,0,0,.6); padding:4px 8px; border-radius:6px; font-size:.72rem; color:#fff;';
+    label.textContent = 'Vous';
+    localDiv.appendChild(label);
+    grid.appendChild(localDiv);
+  }
+  
+  // Remote videos
+  for (const [userId, stream] of Object.entries(remoteStreams)) {
+    const remoteDiv = document.createElement('div');
+    remoteDiv.className = 'video-element';
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.autoplay = true;
+    video.playsinline = true;
+    remoteDiv.appendChild(video);
+    
+    const user = allUsers[userId];
+    const label = document.createElement('div');
+    label.style.cssText = 'position:absolute; bottom:8px; left:8px; background:rgba(0,0,0,.6); padding:4px 8px; border-radius:6px; font-size:.72rem; color:#fff;';
+    label.textContent = user?.name || 'Participant';
+    remoteDiv.appendChild(label);
+    grid.appendChild(remoteDiv);
+  }
+}
+
+/* ════════════════════════════════════
+   🎙️ CALL RECORDING
+════════════════════════════════════ */
+window.toggleCallRecording = async () => {
+  if (!peerConnection || !localStream) {
+    showToast('❌ Appel non actif');
+    return;
+  }
+  
+  if (!isCallRecording) {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioTracks = [];
+      
+      localStream.getAudioTracks().forEach(t => audioTracks.push(t));
+      for (const stream of Object.values(remoteStreams)) {
+        stream.getAudioTracks().forEach(t => audioTracks.push(t));
+      }
+      
+      const canvas = document.createElement('canvas');
+      const recStream = new MediaStream(audioTracks);
+      
+      callRecorder = new MediaRecorder(recStream);
+      recordedChunks = [];
+      
+      callRecorder.ondataavailable = e => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+      };
+      
+      callRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `appel_${new Date().getTime()}.webm`;
+        a.click();
+        showToast('✅ Appel enregistré');
+      };
+      
+      callRecorder.start();
+      isCallRecording = true;
+      document.getElementById('recording-badge').classList.add('active');
+      document.getElementById('record-btn').style.opacity = '1';
+      showToast('⏺ Enregistrement en cours');
+    } catch (e) {
+      console.error('Error starting recording:', e);
+      showToast('❌ Erreur enregistrement');
+    }
+  } else {
+    callRecorder?.stop();
+    isCallRecording = false;
+    document.getElementById('recording-badge').classList.remove('active');
+    document.getElementById('record-btn').style.opacity = '0.5';
+  }
+};
+
+/* ════════════════════════════════════
+   🔒 END-TO-END ENCRYPTION
+════════════════════════════════════ */
+async function generateEncryptionKey() {
+  const key = await crypto.subtle.generateKey(
+    { name: 'AES-GCM', length: 256 },
+    true,
+    ['encrypt', 'decrypt']
+  );
+  return key;
+}
+
+async function encryptMessage(text, key) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    data
+  );
+  
+  return {
+    data: Array.from(new Uint8Array(encrypted)),
+    iv: Array.from(iv)
+  };
+}
+
+async function decryptMessage(encrypted, iv, key) {
+  try {
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: new Uint8Array(iv) },
+      key,
+      new Uint8Array(encrypted)
+    );
+    return new TextDecoder().decode(decrypted);
+  } catch (e) {
+    return '[Message nicht dekodiert]';
+  }
+}
+
+/* ════════════════════════════════════
+   ⌨️ TYPING INDICATORS
+════════════════════════════════════ */
+window.onUserTyping = () => {
+  if (!currentConvId || !currentUser) return;
+  
+  clearTimeout(typingTimeout);
+  
+  const typingRef = ref(db, `conversations/${currentConvId}/typing/${currentUser.id}`);
+  set(typingRef, { name: currentUser.name, ts: Date.now() });
+  
+  typingTimeout = setTimeout(() => {
+    remove(typingRef);
+  }, 3000);
+};
+
+function listenForTypingIndicators(convId) {
+  const typingRef = ref(db, `conversations/${convId}/typing`);
+  
+  onValue(typingRef, snap => {
+    usersTyping = snap.val() || {};
+    const typingUsers = Object.values(usersTyping).map(u => u.name).filter(n => n !== currentUser.name);
+    
+    const indicator = document.getElementById('typing-indicator');
+    if (typingUsers.length > 0) {
+      indicator.style.display = 'block';
+      document.getElementById('typing-user').textContent = typingUsers.join(', ');
+    } else {
+      indicator.style.display = 'none';
+    }
+  });
+}
+
+const originalListenMessages = listenMessages;
+listenMessages = function(convId) {
+  originalListenMessages(convId);
+  listenForTypingIndicators(convId);
+};
+
+/* ════════════════════════════════════
+   🎨 ENHANCED UI & ANIMATIONS
+════════════════════════════════════ */
+window.addEventListener('online', () => showToast('✅ Connecté'));
+window.addEventListener('offline', () => showToast('📡 Hors ligne'));
+
+if ('Notification' in window && Notification.permission === 'granted') {
+  window.addEventListener('focus', () => {
+    document.querySelectorAll('.notification').forEach(n => n.remove());
+  });
+}
+
+// Performance: Debounce scroll listeners
+let scrollTimeout;
+document.getElementById('messages-container')?.addEventListener('scroll', () => {
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    const container = document.getElementById('messages-container');
+    if (container.scrollTop === 0) {
+      console.log('Reached top - load older messages');
+    }
+  }, 200);
+});
+
+// Optimize animations
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (prefersReducedMotion) {
+  document.documentElement.style.setProperty('--animation-duration', '0.01s');
+}
+
+/* ════════════════════════════════════
+   📞 CALL HISTORY & STATISTICS
+════════════════════════════════════ */
+window.trackCallHistory = async (callId, recipientId, duration, isIncoming, status = 'completed') => {
+  if (!currentUser) return;
+  
+  const callRecord = {
+    callId,
+    recipientId,
+    recipientName: (allUsers[recipientId] || {}).name || 'Unknown',
+    duration,
+    isIncoming,
+    status,
+    timestamp: Date.now(),
+    isVideo: isVideoEnabled || false
+  };
+  
+  try {
+    const historyRef = ref(db, `users/${currentUser.id}/callHistory/${callId}`);
+    await set(historyRef, callRecord);
+  } catch (e) {
+    console.error('Error tracking call history:', e);
+  }
+};
+
+window.showCallHistory = async () => {
+  if (!currentUser) return;
+  
+  try {
+    const historyRef = ref(db, `users/${currentUser.id}/callHistory`);
+    const snap = await get(historyRef);
+    const history = snap.val() || {};
+    
+    let totalCalls = 0;
+    let totalDuration = 0;
+    let missedCalls = 0;
+    const calls = [];
+    
+    for (const [id, call] of Object.entries(history)) {
+      totalCalls++;
+      totalDuration += call.duration || 0;
+      if (call.status === 'missed') missedCalls++;
+      calls.push(call);
+    }
+    
+    calls.sort((a, b) => b.timestamp - a.timestamp);
+    
+    const list = document.getElementById('call-history-list');
+    if (calls.length === 0) {
+      list.innerHTML = '<div class="empty-list" style="padding:20px;">Aucun appel enregistré</div>';
+    } else {
+      list.innerHTML = calls.slice(0, 20).map(c => `
+        <div style="padding:10px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:500;">${c.isIncoming ? '📥' : '📤'} ${c.recipientName}</div>
+            <div style="font-size:.75rem; color:var(--text2);">${new Date(c.timestamp).toLocaleString('fr-FR')}</div>
+            <div style="font-size:.75rem; color:var(--text2);">${c.isVideo ? '📹' : '🎙️'} ${formatDuration(c.duration)}</div>
+          </div>
+          <div style="color:${c.status === 'missed' ? 'var(--danger)' : 'var(--success)'}; font-weight:600;">${c.status === 'missed' ? 'Manqué' : '✓'}</div>
+        </div>
+      `).join('');
+    }
+    
+    const avgDuration = totalCalls > 0 ? Math.floor(totalDuration / totalCalls) : 0;
+    document.getElementById('stat-total-calls').textContent = totalCalls;
+    document.getElementById('stat-total-duration').textContent = formatDuration(totalDuration);
+    document.getElementById('stat-missed-calls').textContent = missedCalls;
+    document.getElementById('stat-avg-duration').textContent = formatDuration(avgDuration);
+    
+    document.getElementById('call-history-modal').classList.add('open');
+  } catch (e) {
+    console.error('Error fetching call history:', e);
+  }
+};
+
+window.clearCallHistory = async () => {
+  if (!currentUser) return;
+  
+  if (!confirm('Êtes-vous sûr ? Cela supprimera tout l\'historique des appels.')) return;
+  
+  try {
+    const historyRef = ref(db, `users/${currentUser.id}/callHistory`);
+    await remove(historyRef);
+    showToast('Historique des appels effacé');
+    document.getElementById('call-history-list').innerHTML = '<div class="empty-list" style="padding:20px;">Aucun appel enregistré</div>';
+  } catch (e) {
+    console.error('Error clearing history:', e);
+  }
+};
+
+// Track call duration when ending
+window.endCall = async () => {
+  // Stop recording if active
+  if (isCallRecording && callRecorder) {
+    callRecorder.stop();
+    isCallRecording = false;
+  }
+  
+  if (currentCallId && callStartTime) {
+    const duration = Math.floor((Date.now() - callStartTime) / 1000);
+    await trackCallHistory(currentCallId, currentCallUserId, duration, false);
+  }
+  
+  if (currentCallId) {
+    try {
+      await update(ref(db, `calls/${currentCallId}`), { status: 'ended', endedAt: Date.now() });
+    } catch (e) {
+      console.error('Error ending call:', e);
+    }
+  }
+
+  stopCallCleanup();
+  closeVideo();
+  showToast('Appel terminé');
+};
+
+/* ════════════════════════════════════
+   🎯 QUICK ACCESS BUTTONS
+════════════════════════════════════ */
+// Add settings button to sidebar header
+setTimeout(() => {
+  const headerActions = document.querySelector('.header-actions');
+  if (headerActions && !document.getElementById('history-btn')) {
+    const historyBtn = document.createElement('button');
+    historyBtn.id = 'history-btn';
+    historyBtn.className = 'icon-btn';
+    historyBtn.title = 'Historique des appels';
+    historyBtn.onclick = showCallHistory;
+    historyBtn.innerHTML = '📞 Appels';
+    headerActions.appendChild(historyBtn);
+    
+    const settingsBtn = document.createElement('button');
+    settingsBtn.id = 'settings-btn';
+    settingsBtn.className = 'icon-btn';
+    settingsBtn.title = 'Paramètres';
+    settingsBtn.onclick = () => document.getElementById('settings-modal').classList.add('open');
+    settingsBtn.innerHTML = '⚙️';
+    headerActions.appendChild(settingsBtn);
+  }
+}, 1000);
 </script>
 <!-- 🎨 BOUTON THEME -->
 <button onclick="toggleThemeMenu()" style="
