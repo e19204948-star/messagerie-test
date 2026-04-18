@@ -1869,5 +1869,113 @@ window.DEBUG_CALL_STATUS = () => {
   console.log('Call Listeners:', callListeners);
 };
 </script>
+<!-- 🎨 BOUTON THEME -->
+<button onclick="toggleThemeMenu()" style="
+position:fixed;
+top:20px;
+right:20px;
+padding:10px;
+border:none;
+border-radius:10px;
+background:#7c6aff;
+color:white;
+cursor:pointer;
+z-index:1000;
+">
+🎨
+</button>
+
+<!-- 🎨 MENU THEME -->
+<div id="theme-menu" style="
+position:fixed;
+top:70px;
+right:20px;
+background:#1e1e2a;
+border:1px solid #333;
+border-radius:12px;
+padding:10px;
+width:180px;
+display:none;
+flex-direction:column;
+gap:8px;
+z-index:1000;
+">
+
+  <div onclick="setTheme(1)" style="cursor:pointer;padding:8px;border-radius:8px;">
+    <div style="height:30px;border-radius:6px;background:linear-gradient(135deg,#0e0e12,#1e1e2a);"></div>
+    Sombre
+  </div>
+
+  <div onclick="setTheme(2)" style="cursor:pointer;padding:8px;border-radius:8px;">
+    <div style="height:30px;border-radius:6px;background:linear-gradient(135deg,#1a1a2e,#0f3460);"></div>
+    Bleu nuit
+  </div>
+
+  <div onclick="setTheme(3)" style="cursor:pointer;padding:8px;border-radius:8px;">
+    <div style="height:30px;border-radius:6px;background:linear-gradient(135deg,#7c6aff,#5e50d6);"></div>
+    Violet
+  </div>
+
+  <div onclick="setTheme(4)" style="cursor:pointer;padding:8px;border-radius:8px;">
+    <div style="height:30px;border-radius:6px;background:linear-gradient(45deg,#7c6aff,#0f3460);"></div>
+    Animé
+  </div>
+
+</div>
+
+<style>
+body.bg1 {
+  background: linear-gradient(135deg,#0e0e12,#1e1e2a);
+}
+body.bg2 {
+  background: linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+}
+body.bg3 {
+  background: linear-gradient(135deg,#7c6aff,#5e50d6);
+}
+body.bg4 {
+  background: linear-gradient(-45deg,#7c6aff,#5e50d6,#0f3460,#1a1a2e);
+  background-size:400% 400%;
+  animation: move 10s ease infinite;
+}
+
+@keyframes move {
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+</style>
+
+<script>
+function toggleThemeMenu(){
+  let menu = document.getElementById("theme-menu");
+  menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+}
+
+function setTheme(id){
+  document.body.className = ""; // reset
+  document.body.classList.add("bg"+id);
+
+  // sauvegarde
+  localStorage.setItem("theme", id);
+
+  document.getElementById("theme-menu").style.display="none";
+}
+
+// charger thème
+window.onload = () => {
+  let saved = localStorage.getItem("theme");
+  if(saved){
+    document.body.classList.add("bg"+saved);
+  }
+}
+
+// fermer si clic dehors
+document.addEventListener("click", (e)=>{
+  if(!e.target.closest("#theme-menu") && e.target.innerText !== "🎨"){
+    document.getElementById("theme-menu").style.display="none";
+  }
+});
+</script>
 </body>
 </html>
