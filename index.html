@@ -1276,6 +1276,8 @@ function createPeerConnection() {
       remoteAudioEl.id = 'remote-audio-stream';
       remoteAudioEl.autoplay = true;
       remoteAudioEl.playsInline = true;
+      remoteAudioEl.muted = false;
+      remoteAudioEl.volume = 1.0;
       remoteAudioEl.setAttribute('playsinline', '');
       // IMPORTANT : visible mais transparent pour forcer l'autoplay sur iOS
       remoteAudioEl.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0.001;bottom:0;right:0;pointer-events:none;';
@@ -1285,6 +1287,8 @@ function createPeerConnection() {
 
     const stream = event.streams[0] || new MediaStream([event.track]);
     remoteAudioEl.srcObject = stream;
+    remoteAudioEl.muted = false;
+    remoteAudioEl.volume = 1.0;
 
     // Tenter la lecture immédiatement
     const tryPlay = () => {
