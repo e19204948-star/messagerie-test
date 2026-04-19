@@ -1901,12 +1901,25 @@ function stopRingtone() {
 
 function playCallSound(type) {
   try {
-    const audioCtx = initAudioContext();
-    if(!audioCtx) return;
+    console.log(`[SOUND] Attempting to play: ${type}`);
     
-    // Ensure context is running
+    const audioCtx = initAudioContext();
+    if(!audioCtx) {
+      console.warn('[SOUND] No audio context');
+      return;
+    }
+    
+    console.log(`[SOUND] Audio context state: ${audioCtx.state}`);
+    
+    // Resume suspended context
     if(audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(() => {});
+      console.log('[SOUND] Context suspended, resuming...');
+      audioCtx.resume().then(() => {
+        console.log('[SOUND] Context resumed, retrying...');
+        setTimeout(() => playCallSound(type), 50);
+      }).catch(e => {
+        console.warn('[SOUND] Resume failed:', e);
+      });
       return;
     }
     
@@ -1914,33 +1927,39 @@ function playCallSound(type) {
     gainNode.connect(audioCtx.destination);
     
     if(type === 'incoming') {
+      console.log('[SOUND] Starting incoming ringtone');
       // Stop any previous ringtone
       stopRingtone();
       
       // Nordic/European style ringtone - repeating pattern
       const playOneRing = () => {
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        const ringGain = audioCtx.createGain();
-        
-        osc1.frequency.value = 800;  // Low tone
-        osc2.frequency.value = 1200; // High tone
-        
-        ringGain.connect(audioCtx.destination);
-        osc1.connect(ringGain);
-        osc2.connect(ringGain);
-        
-        // Louder volume for ringtone
-        ringGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-        ringGain.gain.exponentialRampToValueAtTime(0.05, audioCtx.currentTime + 0.5);
-        
-        const now = audioCtx.currentTime;
-        osc1.start(now);
-        osc1.stop(now + 0.25);
-        osc2.start(now + 0.25);
-        osc2.stop(now + 0.5);
-        
-        ringtoneOscillators.push(osc1, osc2);
+        try {
+          const osc1 = audioCtx.createOscillator();
+          const osc2 = audioCtx.createOscillator();
+          const ringGain = audioCtx.createGain();
+          
+          osc1.frequency.value = 800;  // Low tone
+          osc2.frequency.value = 1200; // High tone
+          
+          ringGain.connect(audioCtx.destination);
+          osc1.connect(ringGain);
+          osc2.connect(ringGain);
+          
+          // Louder volume for ringtone
+          ringGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          ringGain.gain.exponentialRampToValueAtTime(0.05, audioCtx.currentTime + 0.5);
+          
+          const now = audioCtx.currentTime;
+          osc1.start(now);
+          osc1.stop(now + 0.25);
+          osc2.start(now + 0.25);
+          osc2.stop(now + 0.5);
+          
+          ringtoneOscillators.push(osc1, osc2);
+          console.log('[SOUND] 🔊 Ring played');
+        } catch(e) {
+          console.warn('[SOUND] Ring error:', e);
+        }
       };
       
       // Play first ring immediately and repeat every 2 seconds
@@ -1948,8 +1967,9 @@ function playCallSound(type) {
       ringtoneInterval = setInterval(playOneRing, 2000);
       
     } else if(type === 'connected') {
+      console.log('[SOUND] Playing connected chime');
       // Stop ringtone if playing
-      if(type === 'connected') stopRingtone();
+      stopRingtone();
       
       // Connection success - pleasant chime
       const osc = audioCtx.createOscillator();
@@ -1965,6 +1985,7 @@ function playCallSound(type) {
       osc.stop(audioCtx.currentTime + 0.3);
       
     } else if(type === 'outgoing') {
+      console.log('[SOUND] Playing outgoing dial tone');
       // Dial tone with slight variation
       const osc = audioCtx.createOscillator();
       osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
@@ -1977,7 +1998,7 @@ function playCallSound(type) {
       osc.stop(audioCtx.currentTime + 0.4);
     }
   } catch(e) {
-    console.warn('Sound playback error:', e);
+    console.warn('[SOUND] Playback error:', e);
   }
 }
 
@@ -2136,7 +2157,10 @@ window.initiateCall = async function() {
 }
 
 window.handleIncomingCall = async function(fromUserId, callData) {
+  console.log(`[INCOMING] Call received from: ${fromUserId}`, callData);
+  
   if(callState && callState !== 'idle') {
+    console.log(`[INCOMING] Rejecting - already in call state: ${callState}`);
     // Busy - reject and record as missed
     try {
       await set(ref(db, `calls/${fromUserId}/${currentUser.id}`), {
@@ -2158,16 +2182,20 @@ window.handleIncomingCall = async function(fromUserId, callData) {
     return;
   }
   
+  console.log(`[INCOMING] Setting state to incoming`);
   callState = 'incoming';
   currentCallUser = fromUserId;
   callStartTime = Date.now();
   
   // Show notification
   const callerName = allUsers[fromUserId]?.name || 'Utilisateur';
+  console.log(`[INCOMING] Caller name: ${callerName}`);
   
   // Play ringtone immediately!
+  console.log('[INCOMING] Playing ringtone');
   playCallSound('incoming');
   
+  console.log('[INCOMING] Showing notification');
   notify('📞 Appel entrant', {
     message: `de ${callerName}…`,
     type: 'call',
