@@ -1234,18 +1234,49 @@ function stopRingtone() {
 
 // ── FIX 1 : Obtention du micro AVANT toute manipulation WebRTC ──
 async function getLocalStream() {
-  if(localStream && localStream.active) return localStream;
-  localStream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: true,
-      noiseSuppression: true,
-      autoGainControl: true,
-      channelCount: 1
-    },
-    video: false
-  });
-  console.log('[MIC] ✅ Micro obtenu, tracks:', localStream.getAudioTracks().length);
-  return localStream;
+  if(localStream && localStream.active) {
+    // Vérifier que les tracks sont activés
+    const audioTracks = localStream.getAudioTracks();
+    if(audioTracks.length > 0) {
+      audioTracks.forEach((track, i) => {
+        if(!track.enabled) {
+          console.log('[MIC] ⚠️ Track audio', i, 'était désactivé, réactivation');
+          track.enabled = true;
+        }
+      });
+    }
+    return localStream;
+  }
+  
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1
+      },
+      video: false
+    });
+    
+    // Vérifier et activer les tracks
+    const audioTracks = localStream.getAudioTracks();
+    if(audioTracks.length === 0) {
+      console.error('[MIC] ❌ Aucun track audio reçu !');
+      throw new Error('Aucun track audio disponible');
+    }
+    
+    audioTracks.forEach((track, i) => {
+      console.log('[MIC] ✅ Track audio', i, '- Label:', track.label, '- État:', track.enabled);
+      track.enabled = true; // Forcer activation
+    });
+    
+    console.log('[MIC] ✅ Micro obtenu, tracks actifs:', audioTracks.length);
+    return localStream;
+  } catch(e) {
+    console.error('[MIC] ❌ Erreur getUserMedia:', e.name, '-', e.message);
+    throw e;
+  }
 }
 
 // ── FIX 2 : Création de la PeerConnection avec tracks déjà présents ──
@@ -1263,16 +1294,36 @@ function createPeerConnection() {
 
   // Ajouter les tracks locaux IMMÉDIATEMENT après création
   if(localStream) {
-    localStream.getAudioTracks().forEach(track => {
+    const audioTracks = localStream.getAudioTracks();
+    console.log('[RTC] 🎤 Tentative d\'ajout de', audioTracks.length, 'track(s) audio');
+    
+    let trackCount = 0;
+    audioTracks.forEach(track => {
+      if(!track.enabled) {
+        console.warn('[RTC] ⚠️ Track audio désactivé, réactivation');
+        track.enabled = true;
+      }
       pc.addTrack(track, localStream);
-      console.log('[RTC] Track local ajouté:', track.kind, track.label);
+      trackCount++;
+      console.log('[RTC] ✅ Track audio', trackCount, 'ajouté:', track.label, '- Enabled:', track.enabled);
     });
+    
+    if(trackCount === 0) {
+      console.error('[RTC] ❌ ERREUR: Aucun track audio ajouté à la PeerConnection!');
+    }
+  } else {
+    console.error('[RTC] ❌ ERREUR: localStream est undefined!');
   }
 
   // ── FIX 3 : Réception audio distant — clé du bug ──
   pc.ontrack = (event) => {
-    console.log('[RTC] 🔊 Track distant reçu:', event.track.kind, '— streams:', event.streams.length);
+    console.log('[RTC] 🔊 Track distant reçu:', event.track.kind, '— Enabled:', event.track.enabled, '— streams:', event.streams.length);
     if(event.track.kind !== 'audio') return;
+    
+    // Vérifier l'état du track
+    if(!event.track.enabled) {
+      console.warn('[RTC] ⚠️ Track distant audio est DÉSACTIVÉ!');
+    }
 
     // Créer/réutiliser l'élément audio
     if(!remoteAudioEl) {
@@ -1286,21 +1337,36 @@ function createPeerConnection() {
       // IMPORTANT : visible mais transparent pour forcer l'autoplay sur iOS
       remoteAudioEl.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0.001;bottom:0;right:0;pointer-events:none;';
       document.body.appendChild(remoteAudioEl);
-      console.log('[AUDIO] Élément audio créé et ajouté au DOM');
+      console.log('[AUDIO] ✅ Élément audio créé et ajouté au DOM');
     }
 
     const stream = event.streams[0] || new MediaStream([event.track]);
+    console.log('[AUDIO] Assignation du stream à l\'élément audio - Tracks:', stream.getTracks().length);
     remoteAudioEl.srcObject = stream;
     remoteAudioEl.muted = false;
     remoteAudioEl.volume = 1.0;
 
     // Tenter la lecture immédiatement
     const tryPlay = () => {
+      console.log('[AUDIO] 🎵 Tentative de lecture - Volume:', remoteAudioEl.volume, '- Muted:', remoteAudioEl.muted, '- ReadyState:', remoteAudioEl.readyState);
+      
+      // Vérifier que le stream a des tracks
+      if(!remoteAudioEl.srcObject) {
+        console.error('[AUDIO] ❌ srcObject est null!');
+        return;
+      }
+      const tracks = remoteAudioEl.srcObject.getTracks();
+      if(tracks.length === 0) {
+        console.error('[AUDIO] ❌ Aucun track dans le stream!');
+        return;
+      }
+      console.log('[AUDIO] Tracks présents:', tracks.map(t => t.kind + ':' + t.enabled).join(', '));
+      
       remoteAudioEl.play().then(() => {
-        console.log('[AUDIO] ✅ Lecture audio distant démarrée !');
+        console.log('[AUDIO] ✅ Lecture audio distant démarrée avec succès!');
         updateCallStatus('🔊 Appel connecté — audio actif');
       }).catch(err => {
-        console.warn('[AUDIO] Autoplay bloqué:', err.name, '— en attente d\'interaction');
+        console.warn('[AUDIO] ❌ Lecture bloquée:', err.name, '-', err.message);
         // Afficher un bouton pour débloquer l'audio
         showAudioUnblockButton();
       });
@@ -1328,22 +1394,30 @@ function createPeerConnection() {
 
   pc.onconnectionstatechange = () => {
     const s = pc.connectionState;
-    console.log('[RTC] État connexion:', s);
+    console.log('[RTC] État connexion PeerConnection:', s, '| ICE:', pc.iceConnectionState, '| Signaling:', pc.signalingState);
     if(s === 'connected') {
+      console.log('[RTC] ✅ PeerConnection établie avec succès');
       startCallDurationTimer();
       stopRingtone();
       playTone(1200, 0.15, 0.3);
       setTimeout(() => playTone(1500, 0.15, 0.3), 150);
       updateCallStatus('✅ Connecté');
-    } else if(s === 'failed' || s === 'closed') {
+    } else if(s === 'failed') {
+      console.error('[RTC] ❌ Connexion échouée - ICE state:', pc.iceConnectionState);
+      window.endCall();
+    } else if(s === 'closed') {
+      console.log('[RTC] Connexion fermée');
       window.endCall();
     } else if(s === 'disconnected') {
+      console.warn('[RTC] ⚠️ Déconnecté - tentative de reconnexion...');
       updateCallStatus('⚠️ Connexion instable…');
+    } else if(s === 'connecting') {
+      console.log('[RTC] Connexion en cours...');
     }
   };
 
   pc.oniceconnectionstatechange = () => {
-    console.log('[ICE] État ICE:', pc.iceConnectionState);
+    console.log('[ICE] État ICE:', pc.iceConnectionState, '| Connection:', pc.connectionState);
   };
 
   return pc;
@@ -1457,19 +1531,26 @@ window.initiateCall = async function() {
   try {
     callState = 'calling';
     currentCallUser = otherUserId;
+    updateCallStatus('📞 Demande de permission microphone...');
 
     // 1. Obtenir le micro EN PREMIER
+    console.log('[CALL] Obtention du stream audio...');
     await getLocalStream();
+    console.log('[CALL] ✅ Stream audio obtenu avec', localStream.getAudioTracks().length, 'track(s)');
 
     // 2. Créer la PeerConnection (les tracks sont ajoutés à l'intérieur)
+    console.log('[CALL] Création de la PeerConnection...');
     const pc = createPeerConnection();
+    console.log('[CALL] ✅ PeerConnection créée');
 
     // 3. Créer l'offre
+    console.log('[CALL] Création de l\'offre SDP...');
     const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
     await pc.setLocalDescription(offer);
-    console.log('[CALL] Offre créée et définie comme LocalDescription');
+    console.log('[CALL] ✅ Offre créée et LocalDescription définie');
 
     // 4. Envoyer l'offre via Firebase
+    console.log('[CALL] Envoi de l\'offre à Firebase...');
     await set(ref(db, `calls/${currentUser.id}/${otherUserId}`), {
       type: 'offer',
       offer: JSON.stringify(offer),
@@ -1491,9 +1572,18 @@ window.initiateCall = async function() {
     }, 30000);
 
   } catch(e) {
-    console.error('[CALL] Erreur:', e);
-    showToast('❌ ' + (e.name === 'NotAllowedError' ? 'Accès micro refusé' : 'Erreur lors de l\'appel'));
-    callState = 'idle'; currentCallUser = null;
+    console.error('[CALL] ❌ Erreur lors de l\'appel:', e.name, '-', e.message);
+    let errorMsg = 'Erreur lors de l\'appel';
+    if(e.name === 'NotAllowedError') {
+      errorMsg = 'Accès microphone refusé - vérifiez les permissions';
+    } else if(e.name === 'NotFoundError') {
+      errorMsg = 'Microphone non trouvé';
+    } else if(e.name === 'NotReadableError') {
+      errorMsg = 'Microphone en utilisation par une autre application';
+    }
+    showToast('❌ ' + errorMsg);
+    callState = 'idle'; 
+    currentCallUser = null;
     if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
   }
 };
@@ -1505,20 +1595,22 @@ function listenForAnswer(toUserId) {
     if(!data) return;
 
     if(data.type === 'answer' && peerConnection && !peerConnection.remoteDescription) {
-      console.log('[CALL] Réponse reçue, application de RemoteDescription');
+      console.log('[CALL] ✅ Réponse reçue du destinataire');
       try {
         const answer = JSON.parse(data.answer);
+        console.log('[CALL] Application de la RemoteDescription...');
         await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-        console.log('[CALL] RemoteDescription définie ✅');
+        console.log('[CALL] ✅ RemoteDescription définie avec succès');
         callState = 'connected';
 
         // Maintenant on peut commencer à écouter les ICE candidates
+        console.log('[CALL] Écoute des ICE candidates...');
         startListeningCandidates(toUserId);
         await flushPendingCandidates();
 
         unsubAnswer(); // Arrêter d'écouter la réponse
       } catch(e) {
-        console.error('[CALL] Erreur setRemoteDescription:', e);
+        console.error('[CALL] ❌ Erreur setRemoteDescription:', e.name, '-', e.message);
       }
     } else if(data.type === 'rejected' || data.type === 'ended') {
       showToast(data.type === 'rejected' ? '📵 Appel refusé' : '📞 Appel terminé');
@@ -1564,26 +1656,34 @@ window.acceptCall = async function() {
 
   try {
     // 1. Obtenir le micro
+    console.log('[ANSWER] Obtention du stream audio...');
     await getLocalStream();
+    console.log('[ANSWER] ✅ Stream audio obtenu avec', localStream.getAudioTracks().length, 'track(s)');
 
     // 2. Créer la PeerConnection avec les tracks
+    console.log('[ANSWER] Création de la PeerConnection...');
     const pc = createPeerConnection();
+    console.log('[ANSWER] ✅ PeerConnection créée');
 
     // 3. Appliquer la RemoteDescription (offre)
+    console.log('[ANSWER] Parsing et application de l\'offre...');
     const offer = JSON.parse(offerData.offer);
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
-    console.log('[ANSWER] RemoteDescription (offre) définie ✅');
+    console.log('[ANSWER] ✅ RemoteDescription (offre) définie');
 
     // 4. Maintenant écouter les ICE candidates (APRÈS setRemoteDescription!)
+    console.log('[ANSWER] Écoute des ICE candidates...');
     startListeningCandidates(fromUserId);
     await flushPendingCandidates();
 
     // 5. Créer la réponse
+    console.log('[ANSWER] Création de la réponse SDP...');
     const answer = await pc.createAnswer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
     await pc.setLocalDescription(answer);
-    console.log('[ANSWER] Réponse créée et définie comme LocalDescription ✅');
+    console.log('[ANSWER] ✅ Réponse créée et LocalDescription définie');
 
     // 6. Envoyer la réponse
+    console.log('[ANSWER] Envoi de la réponse à Firebase...');
     await set(ref(db, `calls/${currentUser.id}/${fromUserId}`), {
       type: 'answer',
       answer: JSON.stringify(answer),
@@ -1594,7 +1694,7 @@ window.acceptCall = async function() {
     console.log('[ANSWER] ✅ Appel accepté et réponse envoyée');
 
   } catch(e) {
-    console.error('[ANSWER] Erreur:', e);
+    console.error('[ANSWER] ❌ Erreur:', e.name, '-', e.message);
     showToast('❌ Erreur de connexion: ' + e.message);
     window.endCall();
   }
