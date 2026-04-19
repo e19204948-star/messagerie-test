@@ -91,12 +91,24 @@
   :root[data-color="pink"] { --accent: #ec4899; --accent2: #d91e63; --accent-glow: rgba(236,72,153,0.18); }
   :root[data-color="violet"] { --accent: #a855f7; --accent2: #9333ea; --accent-glow: rgba(168,85,247,0.18); }
   :root[data-color="rose"] { --accent: #f43f5e; --accent2: #e11d48; --accent-glow: rgba(244,63,94,0.18); }
+  :root[data-color="indigo"] { --accent: #6366f1; --accent2: #4f46e5; --accent-glow: rgba(99,102,241,0.18); }
+  :root[data-color="emerald"] { --accent: #14b8a6; --accent2: #0d9488; --accent-glow: rgba(20,184,166,0.18); }
+  :root[data-color="amber"] { --accent: #f59e0b; --accent2: #d97706; --accent-glow: rgba(245,158,11,0.18); }
+  :root[data-color="red"] { --accent: #ef4444; --accent2: #dc2626; --accent-glow: rgba(239,68,68,0.18); }
+  :root[data-color="cyan"] { --accent: #06b6d4; --accent2: #0891b2; --accent-glow: rgba(6,182,212,0.18); }
+  :root[data-color="lime"] { --accent: #84cc16; --accent2: #65a30d; --accent-glow: rgba(132,204,22,0.18); }
   :root[data-theme="light"][data-color="ocean"] { --accent: #0284c7; --accent2: #0369a1; --accent-glow: rgba(2,132,199,0.12); }
   :root[data-theme="light"][data-color="forest"] { --accent: #059669; --accent2: #047857; --accent-glow: rgba(5,150,105,0.12); }
   :root[data-theme="light"][data-color="sunset"] { --accent: #d97706; --accent2: #b45309; --accent-glow: rgba(217,119,6,0.12); }
   :root[data-theme="light"][data-color="pink"] { --accent: #db2777; --accent2: #be185d; --accent-glow: rgba(219,39,119,0.12); }
   :root[data-theme="light"][data-color="violet"] { --accent: #9333ea; --accent2: #7e22ce; --accent-glow: rgba(147,51,234,0.12); }
   :root[data-theme="light"][data-color="rose"] { --accent: #be185d; --accent2: #9d174d; --accent-glow: rgba(190,24,93,0.12); }
+  :root[data-theme="light"][data-color="indigo"] { --accent: #4f46e5; --accent2: #4338ca; --accent-glow: rgba(79,70,229,0.12); }
+  :root[data-theme="light"][data-color="emerald"] { --accent: #0d9488; --accent2: #047857; --accent-glow: rgba(13,148,136,0.12); }
+  :root[data-theme="light"][data-color="amber"] { --accent: #d97706; --accent2: #b45309; --accent-glow: rgba(217,119,6,0.12); }
+  :root[data-theme="light"][data-color="red"] { --accent: #dc2626; --accent2: #b91c1c; --accent-glow: rgba(220,38,38,0.12); }
+  :root[data-theme="light"][data-color="cyan"] { --accent: #0891b2; --accent2: #0e7490; --accent-glow: rgba(8,145,178,0.12); }
+  :root[data-theme="light"][data-color="lime"] { --accent: #65a30d; --accent2: #4b5e0d; --accent-glow: rgba(101,163,13,0.12); }
 
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; transition: background .3s, color .3s; }
@@ -333,6 +345,23 @@
   .contact-select-item input[type=checkbox] { accent-color: var(--accent); width:16px; height:16px; }
   .theme-toggle { background:none; border:none; color:var(--text2); cursor:pointer; padding:7px; border-radius:8px; display:flex; align-items:center; transition: background .15s, color .15s; -webkit-tap-highlight-color: transparent; }
   .theme-toggle:hover { background:var(--bg4); color:var(--text); }
+  .color-picker-menu { position:absolute; top:50px; right:0; background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:12px; box-shadow:0 8px 24px rgba(0,0,0,0.3); z-index:100; }
+  .color-picker-grid { display:grid; grid-template-columns:repeat(4,36px); gap:8px; }
+  .color-option { width:36px; height:36px; border-radius:8px; border:2px solid var(--border); cursor:pointer; transition:all .2s; flex-shrink:0; }
+  .color-option:hover { transform:scale(1.1); box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+  .color-option:active { transform:scale(0.95); }
+  .color-option[data-color="ocean"] { border-color:#0ea5e9; }
+  .color-option[data-color="forest"] { border-color:#10b981; }
+  .color-option[data-color="sunset"] { border-color:#f97316; }
+  .color-option[data-color="pink"] { border-color:#ec4899; }
+  .color-option[data-color="violet"] { border-color:#a855f7; }
+  .color-option[data-color="rose"] { border-color:#f43f5e; }
+  .color-option[data-color="indigo"] { border-color:#6366f1; }
+  .color-option[data-color="emerald"] { border-color:#14b8a6; }
+  .color-option[data-color="amber"] { border-color:#f59e0b; }
+  .color-option[data-color="red"] { border-color:#ef4444; }
+  .color-option[data-color="cyan"] { border-color:#06b6d4; }
+  .color-option[data-color="lime"] { border-color:#84cc16; }
   .empty-list { text-align:center; padding:40px 20px; color:var(--text3); font-size:.85rem; }
   .date-sep { display:flex; align-items:center; gap:10px; margin: 8px 0; }
   .date-sep::before, .date-sep::after { content:''; flex:1; height:1px; background:var(--border); }
@@ -404,10 +433,29 @@
 <body>
 
 <div id="auth-screen" class="screen active">
-  <div style="position:absolute;top:16px;right:16px;">
+  <div style="position:absolute;top:16px;right:16px;display:flex;gap:8px;align-items:center;">
+    <button class="theme-toggle" onclick="toggleColorPicker()" title="Couleur du thème">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.6c3.72 4.35 8.94 5.66 16.88 5.85m19.5 1.61c-3.72 36.83-28.28 67.29-50.1 73.66"/></svg>
+    </button>
     <button class="theme-toggle" onclick="toggleTheme()" title="Changer de thème">
       <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
+    <div id="color-picker-menu" class="color-picker-menu" style="display:none;">
+      <div class="color-picker-grid">
+        <button class="color-option" data-color="ocean" style="background:#0ea5e9;" onclick="setThemeColor('ocean')" title="Océan"></button>
+        <button class="color-option" data-color="forest" style="background:#10b981;" onclick="setThemeColor('forest')" title="Forêt"></button>
+        <button class="color-option" data-color="sunset" style="background:#f97316;" onclick="setThemeColor('sunset')" title="Coucher de soleil"></button>
+        <button class="color-option" data-color="pink" style="background:#ec4899;" onclick="setThemeColor('pink')" title="Rose"></button>
+        <button class="color-option" data-color="violet" style="background:#a855f7;" onclick="setThemeColor('violet')" title="Violet"></button>
+        <button class="color-option" data-color="rose" style="background:#f43f5e;" onclick="setThemeColor('rose')" title="Rose vif"></button>
+        <button class="color-option" data-color="indigo" style="background:#6366f1;" onclick="setThemeColor('indigo')" title="Indigo"></button>
+        <button class="color-option" data-color="emerald" style="background:#14b8a6;" onclick="setThemeColor('emerald')" title="Émeraude"></button>
+        <button class="color-option" data-color="amber" style="background:#f59e0b;" onclick="setThemeColor('amber')" title="Ambre"></button>
+        <button class="color-option" data-color="red" style="background:#ef4444;" onclick="setThemeColor('red')" title="Rouge"></button>
+        <button class="color-option" data-color="cyan" style="background:#06b6d4;" onclick="setThemeColor('cyan')" title="Cyan"></button>
+        <button class="color-option" data-color="lime" style="background:#84cc16;" onclick="setThemeColor('lime')" title="Citron"></button>
+      </div>
+    </div>
   </div>
   <div class="auth-card">
     <div class="auth-logo">
@@ -615,7 +663,7 @@
     </div>
     <div>
       <div style="font-size:.85rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:12px;">Couleur d'accent</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="color-themes-grid"></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:8px;" id="color-themes-grid"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('theme-modal')">Fermer</button>
@@ -760,10 +808,13 @@ if ('serviceWorker' in navigator) {
 
 /* ══ THEME ══ */
 window.colorThemes = [
-  { id: 'default', name: '💜 Purple' }, { id: 'ocean', name: '🌊 Ocean' },
-  { id: 'forest', name: '🌲 Forest' }, { id: 'sunset', name: '🌅 Sunset' },
-  { id: 'pink', name: '💕 Pink' }, { id: 'violet', name: '🟣 Violet' },
-  { id: 'rose', name: '🌹 Rose' }
+  { id: 'default', name: '💜 Purple' }, { id: 'ocean', name: '🌊 Océan' },
+  { id: 'forest', name: '🌲 Forêt' }, { id: 'sunset', name: '🌅 Coucher' },
+  { id: 'pink', name: '💕 Rose' }, { id: 'violet', name: '🟣 Violet' },
+  { id: 'rose', name: '🌹 Rose vif' }, { id: 'indigo', name: '🔵 Indigo' },
+  { id: 'emerald', name: '💚 Émeraude' }, { id: 'amber', name: '🟡 Ambre' },
+  { id: 'red', name: '❤️ Rouge' }, { id: 'cyan', name: '🔷 Cyan' },
+  { id: 'lime', name: '🟢 Citron' }
 ];
 window.toggleTheme = () => {
   const html = document.documentElement;
@@ -800,6 +851,43 @@ window.initTheme = () => {
   if(savedColor !== 'default') document.documentElement.setAttribute('data-color', savedColor);
   updateThemeIcon(); updateThemeUI();
 };
+window.toggleColorPicker = () => {
+  const menu = document.getElementById('color-picker-menu');
+  if(menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+};
+window.setThemeColor = (color) => {
+  document.documentElement.setAttribute('data-color', color);
+  localStorage.setItem('chat-color-theme', color);
+  const menu = document.getElementById('color-picker-menu');
+  if(menu) menu.style.display = 'none';
+  // Marquer le bouton comme actif
+  document.querySelectorAll('.color-option').forEach(btn => {
+    if(btn.getAttribute('data-color') === color) {
+      btn.style.boxShadow = '0 0 0 2px var(--accent)';
+    } else {
+      btn.style.boxShadow = 'none';
+    }
+  });
+};
+// Charger les préférences au démarrage
+window.addEventListener('load', () => {
+  const savedColor = localStorage.getItem('chat-color-theme');
+  if(savedColor) {
+    document.querySelectorAll('.color-option').forEach(btn => {
+      if(btn.getAttribute('data-color') === savedColor) {
+        btn.style.boxShadow = '0 0 0 2px var(--accent)';
+      }
+    });
+  }
+});
+// Fermer le menu en cliquant ailleurs
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('color-picker-menu');
+  const btn = document.querySelector('[onclick="toggleColorPicker()"]');
+  if(menu && !menu.contains(e.target) && !btn?.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTheme);
 else initTheme();
 
