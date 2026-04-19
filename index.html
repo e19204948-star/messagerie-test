@@ -1864,59 +1864,120 @@ window.callUserFromHistory = async function(userId, userName) {
   setTimeout(() => initiateCall(), 500);
 };
 
+// Global audio context and ringtone control
+let globalAudioCtx = null;
+let ringtoneInterval = null;
+let ringtoneOscillators = [];
+
+function initAudioContext() {
+  if(!globalAudioCtx) {
+    try {
+      globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // Resume audio context on user interaction
+      if(globalAudioCtx.state === 'suspended') {
+        document.addEventListener('click', () => {
+          globalAudioCtx?.resume?.();
+        }, { once: true });
+      }
+    } catch(e) {
+      console.warn('Audio context initialization failed:', e);
+    }
+  }
+  return globalAudioCtx;
+}
+
+function stopRingtone() {
+  if(ringtoneInterval) {
+    clearInterval(ringtoneInterval);
+    ringtoneInterval = null;
+  }
+  ringtoneOscillators.forEach(osc => {
+    try {
+      osc.stop();
+    } catch(e) {}
+  });
+  ringtoneOscillators = [];
+}
+
 function playCallSound(type) {
-  // Create better quality call sounds using Web Audio API
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const audioCtx = initAudioContext();
+    if(!audioCtx) return;
+    
+    // Ensure context is running
+    if(audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+      return;
+    }
+    
     const gainNode = audioCtx.createGain();
     gainNode.connect(audioCtx.destination);
     
     if(type === 'incoming') {
-      // Ring tone - two frequencies alternating
-      const osc1 = audioCtx.createOscillator();
-      const osc2 = audioCtx.createOscillator();
-      osc1.frequency.value = 800;  // Low tone
-      osc2.frequency.value = 1200; // High tone
+      // Stop any previous ringtone
+      stopRingtone();
       
-      gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+      // Nordic/European style ringtone - repeating pattern
+      const playOneRing = () => {
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const ringGain = audioCtx.createGain();
+        
+        osc1.frequency.value = 800;  // Low tone
+        osc2.frequency.value = 1200; // High tone
+        
+        ringGain.connect(audioCtx.destination);
+        osc1.connect(ringGain);
+        osc2.connect(ringGain);
+        
+        // Louder volume for ringtone
+        ringGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        ringGain.gain.exponentialRampToValueAtTime(0.05, audioCtx.currentTime + 0.5);
+        
+        const now = audioCtx.currentTime;
+        osc1.start(now);
+        osc1.stop(now + 0.25);
+        osc2.start(now + 0.25);
+        osc2.stop(now + 0.5);
+        
+        ringtoneOscillators.push(osc1, osc2);
+      };
       
-      osc1.connect(gainNode);
-      osc2.connect(gainNode);
-      
-      osc1.start(audioCtx.currentTime);
-      osc1.stop(audioCtx.currentTime + 0.3);
-      osc2.start(audioCtx.currentTime + 0.3);
-      osc2.stop(audioCtx.currentTime + 0.6);
+      // Play first ring immediately and repeat every 2 seconds
+      playOneRing();
+      ringtoneInterval = setInterval(playOneRing, 2000);
       
     } else if(type === 'connected') {
+      // Stop ringtone if playing
+      if(type === 'connected') stopRingtone();
+      
       // Connection success - pleasant chime
       const osc = audioCtx.createOscillator();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(1500, audioCtx.currentTime);
       osc.frequency.lineToValueAtTime(1200, audioCtx.currentTime + 0.1);
       
-      gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-      
-      osc.connect(gainNode);
-      osc.start(audioCtx.currentTime);
-      osc.stop(audioCtx.currentTime + 0.2);
-      
-    } else if(type === 'outgoing') {
-      // Dial tone
-      const osc = audioCtx.createOscillator();
-      osc.frequency.value = 1000;
-      
-      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
       
       osc.connect(gainNode);
       osc.start(audioCtx.currentTime);
       osc.stop(audioCtx.currentTime + 0.3);
+      
+    } else if(type === 'outgoing') {
+      // Dial tone with slight variation
+      const osc = audioCtx.createOscillator();
+      osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+      
+      gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      
+      osc.connect(gainNode);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.4);
     }
   } catch(e) {
-    console.log('Sound playback error:', e);
+    console.warn('Sound playback error:', e);
   }
 }
 
@@ -2103,6 +2164,10 @@ window.handleIncomingCall = async function(fromUserId, callData) {
   
   // Show notification
   const callerName = allUsers[fromUserId]?.name || 'Utilisateur';
+  
+  // Play ringtone immediately!
+  playCallSound('incoming');
+  
   notify('📞 Appel entrant', {
     message: `de ${callerName}…`,
     type: 'call',
@@ -2136,7 +2201,8 @@ window.handleIncomingCall = async function(fromUserId, callData) {
     });
     
     callState = 'connected';
-    playCallSound('incoming');
+    stopRingtone(); // Stop the ringtone
+    playCallSound('connected');
     notify('✅ Appel connecté', {
       message: `avec ${callerName}`,
       type: 'success',
@@ -2359,6 +2425,7 @@ window.acceptCall = async () => {
 
 window.rejectCall = async () => {
   if(!currentCallUser) return;
+  stopRingtone(); // Stop the ringtone
   try {
     await set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), {
       type: 'rejected',
@@ -2407,6 +2474,7 @@ window.toggleMute = () => {
 };
 
 window.endCall = () => {
+  stopRingtone(); // Stop ringtone
   if(callTimeout) clearTimeout(callTimeout);
   if(callDurationInterval) clearInterval(callDurationInterval);
   if(audioLevelMonitor) clearInterval(audioLevelMonitor);
