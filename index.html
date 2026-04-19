@@ -2340,11 +2340,8 @@ function createCallOverlay() {
     </div>
   `;
   
-  overlay.style.cssText = `
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.7); display: none; align-items: center; 
-    justify-content: center; z-index: 200; backdrop-filter: blur(4px);
-  `;
+  document.body.appendChild(overlay);
+  return overlay;
   
   document.body.appendChild(overlay);
   return overlay;
