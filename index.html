@@ -85,119 +85,28 @@
     --rec-bg: #f5f5fc;
   }
 
-  /* ════════════════════
-     🎨 COLOR THEMES
-  ════════════════════ */
-  :root[data-color="ocean"] {
-    --accent: #0ea5e9;
-    --accent2: #0284c7;
-    --accent-glow: rgba(14,165,233,0.18);
-  }
-  :root[data-color="forest"] {
-    --accent: #10b981;
-    --accent2: #059669;
-    --accent-glow: rgba(16,185,129,0.18);
-  }
-  :root[data-color="sunset"] {
-    --accent: #f97316;
-    --accent2: #ea580c;
-    --accent-glow: rgba(249,115,22,0.18);
-  }
-  :root[data-color="pink"] {
-    --accent: #ec4899;
-    --accent2: #d91e63;
-    --accent-glow: rgba(236,72,153,0.18);
-  }
-  :root[data-color="violet"] {
-    --accent: #a855f7;
-    --accent2: #9333ea;
-    --accent-glow: rgba(168,85,247,0.18);
-  }
-  :root[data-color="rose"] {
-    --accent: #f43f5e;
-    --accent2: #e11d48;
-    --accent-glow: rgba(244,63,94,0.18);
-  }
-
-  /* Light theme color variants */
-  :root[data-theme="light"][data-color="ocean"] {
-    --accent: #0284c7;
-    --accent2: #0369a1;
-    --accent-glow: rgba(2,132,199,0.12);
-  }
-  :root[data-theme="light"][data-color="forest"] {
-    --accent: #059669;
-    --accent2: #047857;
-    --accent-glow: rgba(5,150,105,0.12);
-  }
-  :root[data-theme="light"][data-color="sunset"] {
-    --accent: #d97706;
-    --accent2: #b45309;
-    --accent-glow: rgba(217,119,6,0.12);
-  }
-  :root[data-theme="light"][data-color="pink"] {
-    --accent: #db2777;
-    --accent2: #be185d;
-    --accent-glow: rgba(219,39,119,0.12);
-  }
-  :root[data-theme="light"][data-color="violet"] {
-    --accent: #9333ea;
-    --accent2: #7e22ce;
-    --accent-glow: rgba(147,51,234,0.12);
-  }
-  :root[data-theme="light"][data-color="rose"] {
-    --accent: #be185d;
-    --accent2: #9d174d;
-    --accent-glow: rgba(190,24,93,0.12);
-  }
+  :root[data-color="ocean"] { --accent: #0ea5e9; --accent2: #0284c7; --accent-glow: rgba(14,165,233,0.18); }
+  :root[data-color="forest"] { --accent: #10b981; --accent2: #059669; --accent-glow: rgba(16,185,129,0.18); }
+  :root[data-color="sunset"] { --accent: #f97316; --accent2: #ea580c; --accent-glow: rgba(249,115,22,0.18); }
+  :root[data-color="pink"] { --accent: #ec4899; --accent2: #d91e63; --accent-glow: rgba(236,72,153,0.18); }
+  :root[data-color="violet"] { --accent: #a855f7; --accent2: #9333ea; --accent-glow: rgba(168,85,247,0.18); }
+  :root[data-color="rose"] { --accent: #f43f5e; --accent2: #e11d48; --accent-glow: rgba(244,63,94,0.18); }
+  :root[data-theme="light"][data-color="ocean"] { --accent: #0284c7; --accent2: #0369a1; --accent-glow: rgba(2,132,199,0.12); }
+  :root[data-theme="light"][data-color="forest"] { --accent: #059669; --accent2: #047857; --accent-glow: rgba(5,150,105,0.12); }
+  :root[data-theme="light"][data-color="sunset"] { --accent: #d97706; --accent2: #b45309; --accent-glow: rgba(217,119,6,0.12); }
+  :root[data-theme="light"][data-color="pink"] { --accent: #db2777; --accent2: #be185d; --accent-glow: rgba(219,39,119,0.12); }
+  :root[data-theme="light"][data-color="violet"] { --accent: #9333ea; --accent2: #7e22ce; --accent-glow: rgba(147,51,234,0.12); }
+  :root[data-theme="light"][data-color="rose"] { --accent: #be185d; --accent2: #9d174d; --accent-glow: rgba(190,24,93,0.12); }
 
   * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-    transition: background .3s, color .3s;
-  }
-
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); height: 100vh; height: 100dvh; overflow: hidden; transition: background .3s, color .3s; }
   .screen { display:none; height:100vh; height:100dvh; }
   .screen.active { display:flex; }
 
-  /* ── AUTH ── */
-  #auth-screen {
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    background: var(--bg);
-    position: relative;
-    overflow: hidden;
-  }
-  #auth-screen::before {
-    content:'';
-    position:absolute;
-    width:600px; height:600px;
-    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-    top:-100px; left:50%;
-    transform: translateX(-50%);
-    pointer-events:none;
-  }
-  .auth-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 48px 40px;
-    width: min(380px, calc(100vw - 32px));
-    box-shadow: var(--shadow);
-    position: relative;
-    z-index:1;
-    animation: slideUp .5s ease;
-  }
-  @keyframes slideUp {
-    from { opacity:0; transform:translateY(24px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
+  #auth-screen { align-items: center; justify-content: center; flex-direction: column; background: var(--bg); position: relative; overflow: hidden; }
+  #auth-screen::before { content:''; position:absolute; width:600px; height:600px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); top:-100px; left:50%; transform: translateX(-50%); pointer-events:none; }
+  .auth-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 48px 40px; width: min(380px, calc(100vw - 32px)); box-shadow: var(--shadow); position: relative; z-index:1; animation: slideUp .5s ease; }
+  @keyframes slideUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
   .auth-logo { display:flex; align-items:center; gap:10px; margin-bottom: 32px; }
   .auth-logo svg { color: var(--accent); }
   .auth-logo span { font-family: 'Space Mono', monospace; font-size: 1.3rem; font-weight:700; color: var(--text); letter-spacing: -0.5px; }
@@ -237,10 +146,8 @@
   .btn-dismiss { background:var(--bg3); border:1px solid var(--border); color:var(--text2); border-radius:8px; padding:9px 14px; font-family:'DM Sans',sans-serif; font-size:.85rem; cursor:pointer; transition: background .2s; }
   .btn-dismiss:hover { background:var(--bg4); }
 
-  /* ── MAIN APP ── */
   #app-screen { flex-direction:row; }
 
-  /* ── SIDEBAR ── */
   .sidebar { width: 320px; min-width:320px; background: var(--bg2); border-right: 1px solid var(--border); display:flex; flex-direction:column; height:100vh; height:100dvh; transition: background .3s, transform .3s; }
   .sidebar-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
   .sidebar-title { font-family:'Space Mono',monospace; font-size:1.05rem; font-weight:700; color: var(--text); letter-spacing:-0.5px; }
@@ -277,7 +184,6 @@
   .logout-btn { background:none; border:none; color:var(--text3); cursor:pointer; padding:6px; border-radius:8px; transition: color .2s, background .2s; }
   .logout-btn:hover { color:var(--danger); background:rgba(248,113,113,.1); }
 
-  /* ── CHAT AREA ── */
   .chat-area { flex:1; display:flex; flex-direction:column; background: var(--bg); height:100vh; height:100dvh; overflow:hidden; }
   .chat-placeholder { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color: var(--text3); gap:16px; }
   .chat-placeholder svg { opacity:.3; }
@@ -302,7 +208,6 @@
   .msg-time { font-size:.68rem; opacity:.6; margin-top:4px; text-align:right; }
   .msg-wrap.in .msg-time { text-align:left; }
 
-  /* ── FILE MESSAGE ── */
   .msg-file { display:flex; align-items:center; gap:10px; background: rgba(255,255,255,0.08); border-radius:10px; padding:10px 12px; margin-bottom:4px; cursor:pointer; text-decoration:none; color:inherit; transition: background .2s; }
   .msg-wrap.out .msg-file { background: rgba(255,255,255,0.15); }
   .msg-file:hover { background: rgba(255,255,255,0.2); }
@@ -312,107 +217,39 @@
   .msg-file-size { font-size:.72rem; opacity:.65; margin-top:1px; }
   .msg-img { max-width:100%; border-radius:10px; display:block; cursor:pointer; margin-bottom:4px; }
 
-  /* ════════════════════
-     🎙️ VOICE MESSAGE
-  ════════════════════ */
-  .voice-msg {
-    display:flex; align-items:center; gap:10px;
-    padding:4px 0; min-width:200px; max-width:280px;
-  }
-  .voice-play-btn {
-    width:36px; height:36px; border-radius:50%;
-    border:none; cursor:pointer; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    transition: transform .15s, background .2s;
-    background: var(--voice-bg-out);
-  }
+  .voice-msg { display:flex; align-items:center; gap:10px; padding:4px 0; min-width:200px; max-width:280px; }
+  .voice-play-btn { width:36px; height:36px; border-radius:50%; border:none; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition: transform .15s, background .2s; background: var(--voice-bg-out); }
   .msg-wrap.out .voice-play-btn { background: rgba(255,255,255,0.2); color:#fff; }
   .msg-wrap.in .voice-play-btn { background: var(--accent-glow); color:var(--accent); }
   .voice-play-btn:hover { transform:scale(1.08); }
   .voice-play-btn:active { transform:scale(.95); }
   .voice-play-btn.playing { animation: pulsePlay 1s ease infinite; }
-  @keyframes pulsePlay {
-    0%,100% { box-shadow: 0 0 0 0 var(--accent-glow); }
-    50% { box-shadow: 0 0 0 6px transparent; }
-  }
-  .voice-waveform {
-    flex:1; height:32px; display:flex; align-items:center;
-    gap:2px; cursor:pointer; position:relative;
-    overflow:hidden;
-  }
-  .voice-bar {
-    width:3px; border-radius:3px; flex-shrink:0;
-    transition: background .2s;
-  }
+  @keyframes pulsePlay { 0%,100% { box-shadow: 0 0 0 0 var(--accent-glow); } 50% { box-shadow: 0 0 0 6px transparent; } }
+  .voice-waveform { flex:1; height:32px; display:flex; align-items:center; gap:2px; cursor:pointer; position:relative; overflow:hidden; }
+  .voice-bar { width:3px; border-radius:3px; flex-shrink:0; transition: background .2s; }
   .msg-wrap.out .voice-bar { background: var(--voice-bar); }
   .msg-wrap.out .voice-bar.played { background: var(--voice-bar-active); }
   .msg-wrap.in .voice-bar { background: var(--voice-bar-in); }
   .msg-wrap.in .voice-bar.played { background: var(--voice-bar-in-active); }
-  .voice-duration {
-    font-size:.72rem; opacity:.7; flex-shrink:0;
-    font-family:'Space Mono',monospace; letter-spacing:-.5px; min-width:32px;
-  }
+  .voice-duration { font-size:.72rem; opacity:.7; flex-shrink:0; font-family:'Space Mono',monospace; letter-spacing:-.5px; min-width:32px; }
 
-  /* ════════════════════
-     🎙️ RECORDING UI
-  ════════════════════ */
-  .recording-bar {
-    display:none; align-items:center; gap:10px;
-    padding:10px 14px; border-top:1px solid var(--border);
-    background:var(--rec-bg); flex-shrink:0;
-    animation: slideUp .2s ease;
-  }
+  .recording-bar { display:none; align-items:center; gap:10px; padding:10px 14px; border-top:1px solid var(--border); background:var(--rec-bg); flex-shrink:0; animation: slideUp .2s ease; }
   .recording-bar.active { display:flex; }
-
-  .rec-dot {
-    width:10px; height:10px; border-radius:50%;
-    background:var(--danger); flex-shrink:0;
-    animation: blink 1s ease infinite;
-  }
+  .rec-dot { width:10px; height:10px; border-radius:50%; background:var(--danger); flex-shrink:0; animation: blink 1s ease infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-
-  .rec-waveform {
-    flex:1; height:36px; display:flex; align-items:center;
-    gap:2px; overflow:hidden;
-  }
-  .rec-bar {
-    width:3px; min-width:3px; border-radius:3px;
-    background: var(--accent); flex-shrink:0;
-    transition: height .05s ease;
-  }
-  .rec-timer {
-    font-family:'Space Mono',monospace; font-size:.82rem;
-    color:var(--danger); flex-shrink:0; min-width:44px;
-  }
-
-  .rec-cancel-btn {
-    background:none; border:none; color:var(--text3); cursor:pointer;
-    padding:6px; border-radius:8px;
-    transition: color .2s, background .2s;
-    flex-shrink:0;
-  }
+  .rec-waveform { flex:1; height:36px; display:flex; align-items:center; gap:2px; overflow:hidden; }
+  .rec-bar { width:3px; min-width:3px; border-radius:3px; background: var(--accent); flex-shrink:0; transition: height .05s ease; }
+  .rec-timer { font-family:'Space Mono',monospace; font-size:.82rem; color:var(--danger); flex-shrink:0; min-width:44px; }
+  .rec-cancel-btn { background:none; border:none; color:var(--text3); cursor:pointer; padding:6px; border-radius:8px; transition: color .2s, background .2s; flex-shrink:0; }
   .rec-cancel-btn:hover { color:var(--danger); background:rgba(248,113,113,.1); }
-
-  .rec-send-btn {
-    background:var(--accent); border:none; border-radius:10px;
-    width:40px; height:40px; display:flex; align-items:center; justify-content:center;
-    cursor:pointer; color:#fff; transition: background .2s, transform .1s;
-    flex-shrink:0;
-  }
+  .rec-send-btn { background:var(--accent); border:none; border-radius:10px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; transition: background .2s, transform .1s; flex-shrink:0; }
   .rec-send-btn:hover { background:var(--accent2); }
   .rec-send-btn:active { transform:scale(.95); }
 
-  /* Voice button in input area */
-  .voice-btn {
-    background: var(--bg3); border:1px solid var(--border); border-radius:12px;
-    width:44px; height:44px; display:flex; align-items:center; justify-content:center;
-    cursor:pointer; color:var(--text2); transition: background .2s, color .2s, border-color .2s;
-    flex-shrink:0; -webkit-tap-highlight-color: transparent; position:relative;
-  }
+  .voice-btn { background: var(--bg3); border:1px solid var(--border); border-radius:12px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text2); transition: background .2s, color .2s, border-color .2s; flex-shrink:0; -webkit-tap-highlight-color: transparent; position:relative; }
   .voice-btn:hover { background:var(--bg4); color:var(--accent); }
   .voice-btn.recording { background:rgba(248,113,113,.15); border-color:var(--danger); color:var(--danger); }
 
-  /* ── FILE PREVIEW ZONE ── */
   .file-preview-zone { padding:10px 16px; border-top:1px solid var(--border); background: var(--bg3); display:none; gap:10px; flex-wrap:wrap; align-items:center; }
   .file-preview-zone.visible { display:flex; }
   .file-preview-chip { display:flex; align-items:center; gap:8px; background:var(--bg4); border:1px solid var(--border); border-radius:8px; padding:6px 10px; font-size:.8rem; max-width:200px; }
@@ -421,7 +258,6 @@
   .file-preview-chip button:hover { color:var(--danger); }
   .file-preview-img { width:48px; height:48px; object-fit:cover; border-radius:6px; }
 
-  /* ── CHAT INPUT ── */
   .chat-input-area { padding:10px 14px; border-top:1px solid var(--border); background:var(--bg2); display:flex; align-items:flex-end; gap:8px; flex-shrink:0; }
   .chat-input-area textarea { flex:1; background: var(--bg3); border:1px solid var(--border); border-radius:12px; padding:11px 14px; color: var(--text); font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none; resize:none; max-height:120px; line-height:1.5; transition: border .2s, box-shadow .2s; -webkit-appearance: none; }
   .chat-input-area textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
@@ -431,14 +267,13 @@
   .send-btn:hover { background: var(--accent2); }
   .send-btn:active { transform:scale(.95); }
 
-  /* ── MODAL ── */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); z-index:100; align-items:center; justify-content:center; padding:16px; }
   .modal-overlay.open { display:flex; }
   .modal { background:var(--bg2); border:1px solid var(--border); border-radius:20px; padding:28px; width:min(380px, 100%); box-shadow:var(--shadow); animation: slideUp .3s ease; max-height:90vh; overflow-y:auto; }
   .modal h3 { font-size:1.1rem; font-weight:600; margin-bottom:20px; }
   .modal-actions { display:flex; gap:10px; margin-top:20px; }
 
-  /* ── CALL UI ── */
+  /* ══ CALL UI ══ */
   #call-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(124,106,255,0.1), rgba(20,20,40,0.95)); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); overflow-y: auto; padding: 20px; }
   #call-overlay.visible { display: flex; }
   .call-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 24px; padding: 40px 20px; text-align: center; max-width: 420px; animation: slideUp .3s ease; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 20px; }
@@ -464,7 +299,6 @@
   .call-mute-btn:active, .call-end-btn:active { transform: scale(0.9); }
   .call-mute-btn.muted { background: var(--danger); border-color: var(--danger); color: white; }
   .call-end-btn { background: var(--danger); border-color: var(--danger); color: white; }
-  .call-mute-btn::before { content: ''; position: absolute; inset: -2px; border-radius: 50%; transition: box-shadow .2s; }
   .call-history-toggle { position: absolute; top: 16px; right: 16px; background: var(--bg3); border: 1px solid var(--border); color: var(--text2); border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 0.85rem; transition: all .2s; font-weight: 500; }
   .call-history-toggle:hover { background: var(--accent); color: white; border-color: var(--accent); }
   .call-history-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 320px; background: var(--bg2); border-left: 1px solid var(--border); z-index: 201; transform: translateX(100%); transition: transform .3s ease; overflow-y: auto; display: flex; flex-direction: column; box-shadow: -4px 0 16px rgba(0,0,0,0.3); }
@@ -504,9 +338,6 @@
   .toast.show { display:block; }
   @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-  /* ════════════════════════════════════
-     📢 ENHANCED NOTIFICATIONS SYSTEM
-  ════════════════════════════════════ */
   .notification-container { position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:10px; z-index:220; pointer-events:none; max-width:360px; }
   .notification { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-radius:12px; box-shadow:var(--shadow); border-left:4px solid; animation: slideInRight .3s ease; pointer-events:auto; background:var(--bg2); font-size:.875rem; line-height:1.4; cursor:pointer; transition: all .2s; position:relative; }
   .notification:hover { transform:translateX(-4px); }
@@ -524,10 +355,7 @@
   @keyframes slideOutRight { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(400px); } }
   
   .unread-badge { position:absolute; top:-6px; right:-6px; background:var(--danger); color:#fff; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; border:2px solid var(--bg2); min-width:20px; text-align:center; }
-  
   .notification-sound { display:none; }
-  
-  /* Badge on conversation items */
   .conv-item.has-unread .conv-name::after { content:' ●'; color:var(--danger); }
   .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:300; align-items:center; justify-content:center; cursor:zoom-out; }
   .lightbox.open { display:flex; }
@@ -535,7 +363,6 @@
   .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; }
   @keyframes spin { to { transform:rotate(360deg); } }
 
-  /* ══ MOBILE ══ */
   @media (max-width:700px) {
     #app-screen { position:relative; overflow:hidden; }
     .sidebar { width:100vw; min-width:0; position:absolute; top:0; left:0; z-index:10; transform: translateX(0); transition: transform .3s cubic-bezier(.4,0,.2,1); }
@@ -572,7 +399,6 @@
 </head>
 <body>
 
-<!-- ══ AUTH SCREEN ══ -->
 <div id="auth-screen" class="screen active">
   <div style="position:absolute;top:16px;right:16px;">
     <button class="theme-toggle" onclick="toggleTheme()" title="Changer de thème">
@@ -641,7 +467,6 @@
   </div>
 </div>
 
-<!-- ══ APP SCREEN ══ -->
 <div id="app-screen" class="screen">
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -703,8 +528,6 @@
       </div>
       <div class="messages-container" id="messages-container"></div>
       <div class="file-preview-zone" id="file-preview-zone"></div>
-
-      <!-- 🎙️ RECORDING BAR -->
       <div class="recording-bar" id="recording-bar">
         <div class="rec-dot"></div>
         <div class="rec-waveform" id="rec-waveform"></div>
@@ -716,7 +539,6 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
-
       <div class="chat-input-area">
         <button class="attach-btn" onclick="document.getElementById('file-input').click()" title="Joindre un fichier">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -726,8 +548,7 @@
           oninput="autoResize(this)"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
         ></textarea>
-        <!-- 🎙️ VOICE BUTTON -->
-        <button class="voice-btn" id="call-btn" onclick="initiateCall()" title="Appel audio">
+        <button class="voice-btn" id="call-btn" onclick="initiateCall()" title="Appel audio" style="display:none">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         </button>
         <button class="voice-btn" id="voice-btn" onclick="toggleRecording()" title="Message vocal">
@@ -741,7 +562,7 @@
   </div>
 </div>
 
-<!-- ══ NEW GROUP MODAL ══ -->
+<!-- Modals -->
 <div class="modal-overlay" id="group-modal">
   <div class="modal">
     <h3>Créer un groupe</h3>
@@ -760,7 +581,6 @@
   </div>
 </div>
 
-<!-- ══ ADD MEMBER MODAL ══ -->
 <div class="modal-overlay" id="add-member-modal">
   <div class="modal">
     <h3>Ajouter des membres</h3>
@@ -779,28 +599,20 @@
   </div>
 </div>
 
-<!-- ══ THEME SETTINGS MODAL ══ -->
 <div class="modal-overlay" id="theme-modal">
   <div class="modal">
     <h3>🎨 Thèmes & Couleurs</h3>
-    
     <div style="margin-bottom:24px;">
       <div style="font-size:.85rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:12px;">Mode</div>
       <div style="display:flex;gap:10px;">
-        <button class="btn-secondary" style="flex:1;padding:10px;border:2px solid var(--border);cursor:pointer;transition:.2s" id="theme-dark-btn" onclick="toggleTheme()" title="Mode sombre">
-          🌙 Sombre
-        </button>
-        <button class="btn-secondary" style="flex:1;padding:10px;border:2px solid var(--border);cursor:pointer;transition:.2s" id="theme-light-btn" onclick="toggleTheme()" title="Mode clair">
-          ☀️ Clair
-        </button>
+        <button class="btn-secondary" style="flex:1;padding:10px;border:2px solid var(--border);cursor:pointer;transition:.2s" id="theme-dark-btn" onclick="toggleTheme()" title="Mode sombre">🌙 Sombre</button>
+        <button class="btn-secondary" style="flex:1;padding:10px;border:2px solid var(--border);cursor:pointer;transition:.2s" id="theme-light-btn" onclick="toggleTheme()" title="Mode clair">☀️ Clair</button>
       </div>
     </div>
-
     <div>
       <div style="font-size:.85rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:12px;">Couleur d'accent</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="color-themes-grid"></div>
     </div>
-    
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('theme-modal')">Fermer</button>
     </div>
@@ -812,9 +624,7 @@
   <img id="lightbox-img" src="" alt="" />
 </div>
 <div class="notification-container" id="notification-container"></div>
-<audio id="notification-sound" class="notification-sound">
-  <source src="data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==" type="audio/wav">
-</audio>
+<audio id="notification-sound" class="notification-sound"></audio>
 
 <div id="install-banner">
   <div class="install-icon">
@@ -830,12 +640,11 @@
   </div>
 </div>
 
-<!-- Firebase SDKs -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getDatabase, ref, set, get, push, onValue, off,
-  query, orderByChild, onChildAdded, update, limitToLast
+  query, orderByChild, onChildAdded, update, limitToLast, remove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -851,11 +660,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-/* ══ CONSTANTES ══ */
-const FILE_SIZE_LIMIT  = 5 * 1024 * 1024;   // 5 Mo max fichier
-const VOICE_SIZE_LIMIT = 5 * 1024 * 1024;   // 5 Mo max vocal (~3-4 min webm/opus)
+const FILE_SIZE_LIMIT  = 5 * 1024 * 1024;
+const VOICE_SIZE_LIMIT = 5 * 1024 * 1024;
 
-/* ══ BASE64 HELPER ══ */
 function blobToDataURL(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -865,7 +672,6 @@ function blobToDataURL(blob) {
   });
 }
 
-/* ══ STATE ══ */
 let currentUser   = null;
 let allUsers      = {};
 let conversations = {};
@@ -874,7 +680,6 @@ let msgListener   = null;
 let currentTab    = 'all';
 let pendingFiles  = [];
 
-/* ══ VOICE RECORDING STATE ══ */
 let mediaRecorder    = null;
 let audioChunks      = [];
 let recordingStream  = null;
@@ -887,14 +692,25 @@ let recBars          = [];
 let isRecording      = false;
 let pendingVoiceMime = '';
 
-/* ══ AUDIO CALL STATE ══ */
-let peerConnections  = {}; // {userId: RTCPeerConnection}
-let localStream      = null; // local audio/video stream
-let remoteStreams    = {}; // {userId: MediaStream}
-let callState        = null; // 'idle','calling','incoming','connected'
+// ═══════════════════════════════════════════════
+// 📞 WEBRTC STATE — REWRITTEN FOR AUDIO FIX
+// ═══════════════════════════════════════════════
+let peerConnection   = null;   // single RTCPeerConnection for current call
+let localStream      = null;
+let callState        = 'idle'; // 'idle' | 'calling' | 'incoming' | 'connected'
 let callTimeout      = null;
-let currentCallUser  = null; // userId of current call
-const ICE_SERVERS    = [{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}];
+let currentCallUser  = null;
+let callStartTime    = null;
+let callDurationInterval = null;
+let audioLevelMonitor = null;
+let reconnectAttempts = 0;
+let remoteAudioEl   = null;   // <audio> element for remote stream
+let pendingCandidates = [];   // ICE candidates received before setRemoteDescription
+let iceCandidateUnsubscribe = null;
+
+const ICE_SERVERS = [
+  { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
+];
 
 /* ══ PWA ══ */
 let deferredPrompt = null;
@@ -925,7 +741,6 @@ window.dismissInstall = () => {
   localStorage.setItem('chatio_install_dismissed', '1');
 };
 
-/* ══ SERVICE WORKER ══ */
 if ('serviceWorker' in navigator) {
   const swCode = `
     const CACHE='chatio-v3';
@@ -941,15 +756,11 @@ if ('serviceWorker' in navigator) {
 
 /* ══ THEME ══ */
 window.colorThemes = [
-  { id: 'default', name: '💜 Purple', color: 'default' },
-  { id: 'ocean', name: '🌊 Ocean', color: 'ocean' },
-  { id: 'forest', name: '🌲 Forest', color: 'forest' },
-  { id: 'sunset', name: '🌅 Sunset', color: 'sunset' },
-  { id: 'pink', name: '💕 Pink', color: 'pink' },
-  { id: 'violet', name: '🟣 Violet', color: 'violet' },
-  { id: 'rose', name: '🌹 Rose', color: 'rose' }
+  { id: 'default', name: '💜 Purple' }, { id: 'ocean', name: '🌊 Ocean' },
+  { id: 'forest', name: '🌲 Forest' }, { id: 'sunset', name: '🌅 Sunset' },
+  { id: 'pink', name: '💕 Pink' }, { id: 'violet', name: '🟣 Violet' },
+  { id: 'rose', name: '🌹 Rose' }
 ];
-
 window.toggleTheme = () => {
   const html = document.documentElement;
   const dark = html.getAttribute('data-theme') === 'dark';
@@ -957,97 +768,54 @@ window.toggleTheme = () => {
   localStorage.setItem('chat-theme', dark ? 'light' : 'dark');
   updateThemeIcon();
 };
-
 window.setColorTheme = (colorId) => {
   const html = document.documentElement;
-  if (colorId === 'default') {
-    html.removeAttribute('data-color');
-  } else {
-    html.setAttribute('data-color', colorId);
-  }
+  if (colorId === 'default') html.removeAttribute('data-color');
+  else html.setAttribute('data-color', colorId);
   localStorage.setItem('chat-color-theme', colorId);
   updateThemeUI();
 };
-
 window.updateThemeIcon = () => {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   const sun  = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
   const moon = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
   ['theme-icon','theme-icon2'].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML = dark ? sun : moon; });
 };
-
 window.updateThemeUI = () => {
   const currentColor = document.documentElement.getAttribute('data-color') || 'default';
   document.querySelectorAll('.color-theme-btn').forEach(btn => {
-    const btnColor = btn.getAttribute('data-color');
-    if(btnColor === currentColor) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
+    btn.style.borderColor = btn.getAttribute('data-color') === currentColor ? 'var(--accent)' : 'var(--border)';
+    btn.style.background  = btn.getAttribute('data-color') === currentColor ? 'var(--accent)' : 'var(--bg3)';
+    btn.style.color       = btn.getAttribute('data-color') === currentColor ? '#fff' : 'var(--text)';
   });
 };
-
 window.initTheme = () => {
   const savedTheme = localStorage.getItem('chat-theme') || 'dark';
   const savedColor = localStorage.getItem('chat-color-theme') || 'default';
   document.documentElement.setAttribute('data-theme', savedTheme);
-  if(savedColor !== 'default') {
-    document.documentElement.setAttribute('data-color', savedColor);
-  }
-  updateThemeIcon();
-  updateThemeUI();
+  if(savedColor !== 'default') document.documentElement.setAttribute('data-color', savedColor);
+  updateThemeIcon(); updateThemeUI();
 };
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTheme);
+else initTheme();
 
-if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', initTheme);
-} else {
-  initTheme();
-}
-
-/* ══ THEME MODAL ══ */
 window.openThemeModal = () => {
-  const modal = document.getElementById('theme-modal');
-  if(modal) {
-    modal.classList.add('open');
-    renderColorThemes();
-  }
+  document.getElementById('theme-modal').classList.add('open');
+  renderColorThemes();
 };
-
 window.renderColorThemes = () => {
-  const grid = document.getElementById('color-themes-grid');
-  if(!grid) return;
+  const grid = document.getElementById('color-themes-grid'); if(!grid) return;
   grid.innerHTML = '';
   window.colorThemes.forEach(theme => {
     const btn = document.createElement('button');
     btn.className = 'color-theme-btn';
     btn.setAttribute('data-color', theme.id);
-    btn.style.cssText = `
-      padding: 12px;
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      background: var(--bg3);
-      color: var(--text);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s;
-      font-size: .9rem;
-    `;
+    btn.style.cssText = 'padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--bg3);color:var(--text);font-weight:600;cursor:pointer;transition:all .2s;font-size:.9rem;';
     btn.textContent = theme.name;
-    btn.onclick = () => {
-      setColorTheme(theme.id);
-      renderColorThemes();
-    };
-    
-    const currentColor = document.documentElement.getAttribute('data-color') || 'default';
-    if(theme.id === currentColor) {
-      btn.style.borderColor = 'var(--accent)';
-      btn.style.background = 'var(--accent)';
-      btn.style.color = '#fff';
-    }
-    
+    btn.onclick = () => { setColorTheme(theme.id); renderColorThemes(); };
     grid.appendChild(btn);
   });
+  updateThemeUI();
 };
 
 /* ══ PASSWORD ══ */
@@ -1074,7 +842,6 @@ window.checkPwdStrength = v => {
   fill.style.width=l.w; fill.style.background=l.c; lbl.textContent=l.t; lbl.style.color=l.c;
 };
 
-/* ══ AUTH UI ══ */
 window.showRegister = () => { document.getElementById('login-view').style.display='none'; document.getElementById('register-view').style.display='block'; };
 window.showLogin    = () => { document.getElementById('register-view').style.display='none'; document.getElementById('login-view').style.display='block'; };
 function setLoading(id, on) {
@@ -1090,12 +857,12 @@ window.register = async () => {
   const err  = document.getElementById('register-err');
   const ok   = document.getElementById('register-ok');
   err.style.display='none'; ok.style.display='none';
-  if(!name)              { err.textContent='Entrez votre prénom'; err.style.display='block'; return; }
-  if(pwd.length<6)       { err.textContent='Mot de passe trop court (6 car. min)'; err.style.display='block'; return; }
-  if(pwd!==pwd2)         { err.textContent='Mots de passe différents'; err.style.display='block'; return; }
+  if(!name)        { err.textContent='Entrez votre prénom'; err.style.display='block'; return; }
+  if(pwd.length<6) { err.textContent='Mot de passe trop court (6 car. min)'; err.style.display='block'; return; }
+  if(pwd!==pwd2)   { err.textContent='Mots de passe différents'; err.style.display='block'; return; }
   setLoading('register-btn', true);
   try {
-    const snap  = await get(ref(db,'users'));
+    const snap = await get(ref(db,'users'));
     if (snap.exists() && Object.values(snap.val()).find(u=>u.name.toLowerCase()===name.toLowerCase())) {
       err.textContent='Ce prénom est déjà pris'; err.style.display='block'; return;
     }
@@ -1136,21 +903,23 @@ window.login = async () => {
 window.logout = async () => {
   if(!currentUser) return;
   if(isRecording) cancelRecording();
+  if(callState !== 'idle') window.endCall();
   await update(ref(db,`users/${currentUser.id}`),{online:false});
   localStorage.removeItem('chatio_user');
   location.reload();
 };
 
-/* ══ APP INIT ══ */
 function startApp(user) {
   currentUser = user;
   document.getElementById('auth-screen').classList.remove('active');
   document.getElementById('app-screen').classList.add('active');
   document.getElementById('my-name-el').textContent = user.name;
   document.getElementById('my-avatar-el').textContent = user.name[0];
-  loadUsers(); 
+  loadUsers();
   loadConversations();
   setupCallListener();
+  // Clean up stale call data on login
+  remove(ref(db, `calls/${currentUser.id}`)).catch(()=>{});
   window.addEventListener('beforeunload', () => update(ref(db,`users/${currentUser.id}`),{online:false}));
 }
 
@@ -1165,7 +934,6 @@ if (_saved) {
   } catch(e){ localStorage.removeItem('chatio_user'); }
 }
 
-/* ══ USERS ══ */
 function loadUsers() {
   onValue(ref(db,'users'), snap => {
     allUsers = snap.val() || {};
@@ -1178,7 +946,6 @@ function loadUsers() {
   });
 }
 
-/* ══ CONVERSATIONS ══ */
 function loadConversations() {
   onValue(ref(db,'conversations'), snap => {
     const all = snap.val() || {};
@@ -1200,7 +967,6 @@ function renderConvList() {
   const search = (document.getElementById('search-input')?.value||'').toLowerCase();
   const list   = document.getElementById('conv-list');
   const sorted = Object.values(conversations).sort((a,b)=>(b.lastTime||0)-(a.lastTime||0));
-
   let items = sorted.filter(c => {
     const n = convDisplayName(c).toLowerCase();
     if(search && !n.includes(search)) return false;
@@ -1208,7 +974,6 @@ function renderConvList() {
     if(currentTab==='groups'   && c.type!=='group')  return false;
     return true;
   });
-
   if(currentTab!=='groups') {
     const existing = Object.values(conversations).filter(c=>c.type==='direct')
       .map(c=>c.members?Object.keys(c.members).find(m=>m!==currentUser.id):null).filter(Boolean);
@@ -1218,9 +983,7 @@ function renderConvList() {
         items.push({type:'direct',_new:true,_otherId:id,_otherName:u.name,_online:u.online});
     }
   }
-
   if(!items.length){ list.innerHTML='<div class="empty-list">Aucune conversation</div>'; return; }
-
   list.innerHTML = items.map(c => {
     if(c._new){
       return `<div class="conv-item" data-conv-id="${c._otherId}" onclick="openDirectNew('${c._otherId}','${esc(c._otherName)}')">
@@ -1248,23 +1011,21 @@ function renderConvList() {
   }).join('');
 }
 
-/* ══ MOBILE NAV ══ */
 const isMobile = () => window.innerWidth <= 700;
 function showChatPanel(){ if(isMobile()){ document.getElementById('sidebar').classList.add('slide-out'); document.getElementById('chat-area').classList.add('slide-in'); } }
-window.backToList = () => { 
-  document.getElementById('sidebar').classList.remove('slide-out'); 
-  document.getElementById('chat-area').classList.remove('slide-in'); 
+window.backToList = () => {
+  document.getElementById('sidebar').classList.remove('slide-out');
+  document.getElementById('chat-area').classList.remove('slide-in');
   const callBtn = document.getElementById('call-btn');
   if(callBtn) callBtn.style.display = 'none';
-  currentConvId=null; 
+  currentConvId=null;
 };
 
 window.openConv = id => {
   currentConvId = id;
   const c = conversations[id]; if(!c) return;
-  resetUnreadCount(id); // Clear unread notifications for this conversation
+  resetUnreadCount(id);
   showChatView(c); listenMessages(id); renderConvList(); showChatPanel();
-  // Show call button only for direct conversations
   const callBtn = document.getElementById('call-btn');
   if(callBtn) callBtn.style.display = c.type === 'direct' ? 'flex' : 'none';
 };
@@ -1302,7 +1063,6 @@ function showChatView(conv) {
   }
 }
 
-/* ══ MESSAGES ══ */
 function listenMessages(convId) {
   if(msgListener) off(ref(db,`messages/${msgListener}`));
   msgListener = convId;
@@ -1326,34 +1086,13 @@ function listenMessages(convId) {
     const sender = isOut?'':(allUsers[msg.senderId]||{}).name||msg.senderName||'';
     const isGrp  = conversations[convId]?.type==='group';
 
-    // Trigger notification for incoming messages not from current user
     if(!isOut && msg.senderId !== 'system') {
-      // If message is not in current conversation, show notification
       if(convId !== currentConvId) {
         incrementUnreadCount(convId);
         const senderName = allUsers[msg.senderId]?.name || 'Utilisateur';
-        const convName = convDisplayName(conversations[convId]) || 'Conversation';
-        let messagePreview = '';
-        if(msg.type === 'voice') {
-          messagePreview = `🎙️ Message vocal (${formatDuration(msg.duration)})`;
-        } else if(msg.type === 'file') {
-          messagePreview = `📎 ${msg.fileName}`;
-        } else {
-          messagePreview = msg.text ? msg.text.substring(0, 60) : '…';
-        }
-        
-        notify(`💬 ${senderName}`, {
-          message: messagePreview,
-          type: 'message',
-          icon: '💬',
-          duration: 5000,
-          sound: true,
-          browser: true,
-          tag: 'msg-' + convId,
-          onclick: () => openConv(convId)
-        });
+        let messagePreview = msg.type === 'voice' ? `🎙️ Message vocal` : msg.type === 'file' ? `📎 ${msg.fileName}` : msg.text?.substring(0, 60) || '…';
+        notify(`💬 ${senderName}`, { message: messagePreview, type: 'info', icon: '💬', duration: 5000, sound: true, onclick: () => openConv(convId) });
       } else {
-        // If in current conversation, just play a subtle sound
         if(notificationState.soundEnabled) playNotificationSound();
       }
     }
@@ -1390,7 +1129,6 @@ function listenMessages(convId) {
   });
 }
 
-/* ══ SEND TEXT ══ */
 window.sendMsg = async () => {
   const inp  = document.getElementById('msg-input');
   const text = inp.value.trim();
@@ -1408,7 +1146,6 @@ window.sendMsg = async () => {
   }
 };
 
-/* ══ FILE SEND (base64 → Realtime DB) ══ */
 window.handleFileSelect = inp => {
   const files = Array.from(inp.files); if(!files.length) return;
   pendingFiles = [...pendingFiles, ...files]; renderFilePreview(); inp.value='';
@@ -1439,975 +1176,614 @@ async function sendFile(file) {
   } catch(e){ console.error(e); showToast(`❌ Erreur d'envoi : ${file.name}`); }
 }
 
-/* ════════════════════════════════════
-   📞 AUDIO CALLING — WEBRTC 
-════════════════════════════════════ */
+// ═══════════════════════════════════════════════════════════════
+// 📞 WEBRTC — AUDIO FIX COMPLET
+// Problèmes corrigés :
+// 1. Les ICE candidates ne sont plus écoutés avant setRemoteDescription
+// 2. L'élément <audio> distant est correctement créé et attaché au DOM
+// 3. Les tracks locaux sont ajoutés AVANT createOffer/createAnswer
+// 4. Meilleure gestion de l'autoplay avec interaction utilisateur
+// ═══════════════════════════════════════════════════════════════
 
-let callStartTime = null;
-let callDurationInterval = null;
-let missedCalls = JSON.parse(localStorage.getItem('missedCalls') || '[]');
-let iceCandidatesListeners = {};
-let callStats = { bytesSent: 0, bytesReceived: 0, audioLevel: 0, connectionTime: 0 };
-let audioLevelMonitor = null;
-let audioAnalyser = null;
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 3;
+// Gestionnaire audio global pour les ringtones et sons
+let globalAudioCtx = null;
+let ringtoneInterval = null;
 
-async function getLocalStream() {
-  if(localStream) return;
-  try {
-    // Improved audio constraints with echo cancellation, noise suppression, auto gain
-    const constraints = {
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-        typingNoiseDetection: true,
-        channelCount: 1,
-        sampleRate: 48000,
-        latency: 0.01
-      },
-      video: false
-    };
-    
-    localStream = await navigator.mediaDevices.getUserMedia(constraints);
-    
-    // Setup audio level monitoring
-    try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      audioAnalyser = audioContext.createAnalyser();
-      audioAnalyser.fftSize = 256;
-      const source = audioContext.createMediaStreamSource(localStream);
-      source.connect(audioAnalyser);
-    } catch(e) {
-      console.log('Audio level monitoring not available:', e);
-    }
-    
-    console.log('✅ Microphone access granted with advanced audio processing');
-  } catch(e) {
-    console.error('❌ Mic access denied:', e);
-    showToast('🎤 Accès microphone refusé: ' + e.message);
-    throw e;
+function getAudioCtx() {
+  if(!globalAudioCtx || globalAudioCtx.state === 'closed') {
+    try { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
   }
+  return globalAudioCtx;
 }
 
-async function createPeerConnection(userId) {
-  if(peerConnections[userId]) return peerConnections[userId];
-  
-  const pc = new RTCPeerConnection({iceServers: ICE_SERVERS});
-  
-  // Add local audio tracks to connection
+function playTone(freq, duration, volume = 0.3, delay = 0) {
+  const ctx = getAudioCtx(); if(!ctx) return;
+  try {
+    if(ctx.state === 'suspended') ctx.resume();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    const now = ctx.currentTime + delay;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(volume, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    osc.start(now);
+    osc.stop(now + duration + 0.05);
+  } catch(e) {}
+}
+
+function startRingtone() {
+  stopRingtone();
+  const playRing = () => {
+    playTone(800, 0.2, 0.35);
+    playTone(1200, 0.2, 0.35, 0.25);
+  };
+  playRing();
+  ringtoneInterval = setInterval(playRing, 2000);
+}
+
+function stopRingtone() {
+  if(ringtoneInterval) { clearInterval(ringtoneInterval); ringtoneInterval = null; }
+}
+
+// ── FIX 1 : Obtention du micro AVANT toute manipulation WebRTC ──
+async function getLocalStream() {
+  if(localStream && localStream.active) return localStream;
+  localStream = await navigator.mediaDevices.getUserMedia({
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+      channelCount: 1
+    },
+    video: false
+  });
+  console.log('[MIC] ✅ Micro obtenu, tracks:', localStream.getAudioTracks().length);
+  return localStream;
+}
+
+// ── FIX 2 : Création de la PeerConnection avec tracks déjà présents ──
+function createPeerConnection() {
+  if(peerConnection) {
+    peerConnection.close();
+    peerConnection = null;
+  }
+
+  const pc = new RTCPeerConnection({
+    iceServers: ICE_SERVERS,
+    iceCandidatePoolSize: 10
+  });
+  peerConnection = pc;
+
+  // Ajouter les tracks locaux IMMÉDIATEMENT après création
   if(localStream) {
-    localStream.getTracks().forEach(track => {
+    localStream.getAudioTracks().forEach(track => {
       pc.addTrack(track, localStream);
+      console.log('[RTC] Track local ajouté:', track.kind, track.label);
     });
   }
-  
-  // Handle incoming remote audio
+
+  // ── FIX 3 : Réception audio distant — clé du bug ──
   pc.ontrack = (event) => {
-    console.log('📞 Remote audio received from', userId);
-    remoteStreams[userId] = event.streams[0];
-    playRemoteAudio(userId, event.streams[0]);
-    updateCallQuality('excellent');
-  };
-  
-  // Handle ICE candidates - properly store them
-  pc.onicecandidate = (event) => {
-    if(event.candidate) {
-      const candidateId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      set(ref(db, `calls/${currentUser.id}/${userId}/candidates/${candidateId}`), {
-        candidate: JSON.stringify(event.candidate),
-        timestamp: Date.now()
-      }).catch(e => console.error('Error storing candidate:', e));
+    console.log('[RTC] 🔊 Track distant reçu:', event.track.kind, '— streams:', event.streams.length);
+    if(event.track.kind !== 'audio') return;
+
+    // Créer/réutiliser l'élément audio
+    if(!remoteAudioEl) {
+      remoteAudioEl = document.createElement('audio');
+      remoteAudioEl.id = 'remote-audio-stream';
+      remoteAudioEl.autoplay = true;
+      remoteAudioEl.playsInline = true;
+      remoteAudioEl.setAttribute('playsinline', '');
+      // IMPORTANT : visible mais transparent pour forcer l'autoplay sur iOS
+      remoteAudioEl.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0.001;bottom:0;right:0;pointer-events:none;';
+      document.body.appendChild(remoteAudioEl);
+      console.log('[AUDIO] Élément audio créé et ajouté au DOM');
     }
-  };
-  
-  // Monitor connection state with quality tracking
-  pc.onconnectionstatechange = () => {
-    const state = pc.connectionState;
-    console.log('🔌 Connection state:', state);
-    updateConnectionStatus(state);
-    
-    if(state === 'connected' || state === 'completed') {
-      startCallDurationTimer();
-      playCallSound('connected');
-      reconnectAttempts = 0; // Reset reconnect attempts on success
-      startMonitoringCallStats(pc, userId);
-      startAudioLevelMonitoring();
-    } else if(state === 'disconnected') {
-      updateCallQuality('poor');
-      // Attempt to reconnect
-      if(reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        reconnectAttempts++;
-        notify('⚠️ Connexion instable', {
-          message: `Tentative de reconnexion (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`,
-          type: 'warning',
-          duration: 2000,
-          sound: false
-        });
-        setTimeout(() => {
-          if(callState !== 'idle' && pc.connectionState === 'disconnected') {
-            console.log('Attempting to reconnect...');
-          }
-        }, 2000 * reconnectAttempts);
-      }
-    } else if(state === 'failed') {
-      console.error('Connection failed');
-      notify('❌ Connexion perdue', {
-        message: 'Terminaison de l\'appel',
-        type: 'error',
-        duration: 2000,
-        sound: false
+
+    const stream = event.streams[0] || new MediaStream([event.track]);
+    remoteAudioEl.srcObject = stream;
+
+    // Tenter la lecture immédiatement
+    const tryPlay = () => {
+      remoteAudioEl.play().then(() => {
+        console.log('[AUDIO] ✅ Lecture audio distant démarrée !');
+        updateCallStatus('🔊 Appel connecté — audio actif');
+      }).catch(err => {
+        console.warn('[AUDIO] Autoplay bloqué:', err.name, '— en attente d\'interaction');
+        // Afficher un bouton pour débloquer l'audio
+        showAudioUnblockButton();
       });
-      setTimeout(() => endCall(), 1500);
-    } else if(state === 'closed') {
-      endCall();
+    };
+    tryPlay();
+
+    // Backup : relancer si l'état change
+    event.track.onunmute = () => {
+      console.log('[AUDIO] Track démuté, relancement lecture');
+      tryPlay();
+    };
+  };
+
+  // ICE candidates — envoi vers Firebase
+  pc.onicecandidate = (event) => {
+    if(!event.candidate) return;
+    const candidateData = {
+      candidate: JSON.stringify(event.candidate.toJSON()),
+      ts: Date.now()
+    };
+    const candidateId = push(ref(db, `calls/${currentUser.id}/${currentCallUser}/candidates`)).key;
+    set(ref(db, `calls/${currentUser.id}/${currentCallUser}/candidates/${candidateId}`), candidateData)
+      .catch(e => console.warn('[ICE] Erreur envoi candidate:', e));
+  };
+
+  pc.onconnectionstatechange = () => {
+    const s = pc.connectionState;
+    console.log('[RTC] État connexion:', s);
+    if(s === 'connected') {
+      startCallDurationTimer();
+      stopRingtone();
+      playTone(1200, 0.15, 0.3);
+      setTimeout(() => playTone(1500, 0.15, 0.3), 150);
+      updateCallStatus('✅ Connecté');
+    } else if(s === 'failed' || s === 'closed') {
+      window.endCall();
+    } else if(s === 'disconnected') {
+      updateCallStatus('⚠️ Connexion instable…');
     }
   };
-  
-  // Monitor ICE connection state for better detection
+
   pc.oniceconnectionstatechange = () => {
-    console.log('ICE State:', pc.iceConnectionState);
-    if(pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-      updateCallQuality('poor');
-    }
+    console.log('[ICE] État ICE:', pc.iceConnectionState);
   };
-  
-  // Listen for incoming ICE candidates from remote peer
-  if(!iceCandidatesListeners[userId]) {
-    iceCandidatesListeners[userId] = onValue(ref(db, `calls/${userId}/${currentUser.id}/candidates`), snap => {
-      const candidates = snap.val() || {};
+
+  return pc;
+}
+
+// ── FIX 4 : Écoute des ICE candidates APRÈS setRemoteDescription ──
+function startListeningCandidates(fromUserId) {
+  // Arrêter l'écoute précédente
+  if(iceCandidateUnsubscribe) {
+    try { iceCandidateUnsubscribe(); } catch(e) {}
+    iceCandidateUnsubscribe = null;
+  }
+
+  const processedCandidates = new Set();
+
+  iceCandidateUnsubscribe = onValue(
+    ref(db, `calls/${fromUserId}/${currentUser.id}/candidates`),
+    async (snap) => {
+      const candidates = snap.val();
+      if(!candidates || !peerConnection) return;
+
+      // Attendre que remoteDescription soit définie
+      if(!peerConnection.remoteDescription) {
+        console.log('[ICE] RemoteDescription pas encore prête, mise en attente');
+        pendingCandidates.push(...Object.entries(candidates).map(([id, d]) => ({id, d})));
+        return;
+      }
+
       for(const [id, data] of Object.entries(candidates)) {
-        if(data && data.candidate) {
-          try {
-            const candidate = JSON.parse(data.candidate);
-            pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => {
-              console.warn('Error adding ICE candidate:', e.message);
-            });
-          } catch(e) {
-            console.error('Error parsing ICE candidate:', e);
+        if(processedCandidates.has(id)) continue;
+        processedCandidates.add(id);
+        try {
+          const candidate = JSON.parse(data.candidate);
+          await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          console.log('[ICE] ✅ Candidate ajouté');
+        } catch(e) {
+          if(!e.message.includes('Unknown iceCandidate')) {
+            console.warn('[ICE] Erreur candidate:', e.message);
           }
         }
       }
-    });
+    }
+  );
+}
+
+// Traiter les candidates en attente après setRemoteDescription
+async function flushPendingCandidates() {
+  if(!pendingCandidates.length || !peerConnection?.remoteDescription) return;
+  console.log('[ICE] Flush de', pendingCandidates.length, 'candidates en attente');
+  for(const {d} of pendingCandidates) {
+    try {
+      const candidate = JSON.parse(d.candidate);
+      await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch(e) {}
   }
-  
-  peerConnections[userId] = pc;
-  return pc;
+  pendingCandidates = [];
+}
+
+function showAudioUnblockButton() {
+  const overlay = document.getElementById('call-overlay');
+  if(!overlay) return;
+  let btn = document.getElementById('audio-unblock-btn');
+  if(!btn) {
+    btn = document.createElement('button');
+    btn.id = 'audio-unblock-btn';
+    btn.innerHTML = '🔊 Activer le son';
+    btn.style.cssText = `
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: var(--success); color: white; border: none; border-radius: 20px;
+      padding: 10px 20px; font-weight: 600; cursor: pointer; font-size: .9rem;
+      animation: pulse 1.5s ease infinite;
+    `;
+    btn.onclick = () => {
+      if(remoteAudioEl) {
+        remoteAudioEl.play().then(() => {
+          btn.remove();
+          updateCallStatus('🔊 Audio actif');
+        }).catch(e => console.error('[AUDIO] Toujours bloqué:', e));
+      }
+    };
+    overlay.querySelector('.call-panel')?.appendChild(btn);
+  }
+}
+
+function updateCallStatus(text) {
+  const el = document.querySelector('.call-status');
+  if(el) el.textContent = text;
 }
 
 function startCallDurationTimer() {
   if(!callStartTime) callStartTime = Date.now();
   if(callDurationInterval) clearInterval(callDurationInterval);
-  
   callDurationInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
-    const statusEl = document.querySelector('.call-status');
-    if(statusEl) {
-      statusEl.textContent = `Durée: ${formatDuration(elapsed)}`;
-    }
+    updateCallStatus(`⏱ ${formatDuration(elapsed)}`);
+    const durationEl = document.getElementById('call-duration');
+    if(durationEl) durationEl.textContent = formatDuration(elapsed);
   }, 500);
 }
 
-function updateConnectionStatus(state) {
-  const statusEl = document.querySelector('.call-status');
-  if(!statusEl) return;
-  
-  const stateMessages = {
-    'connecting': 'Connexion en cours...',
-    'connected': 'Connecté',
-    'completed': 'Appel actif',
-    'disconnected': 'Déconnexion...',
-    'failed': 'Erreur de connexion',
-    'closed': 'Fermé'
-  };
-  
-  const message = stateMessages[state] || state;
-  if(statusEl.textContent !== message) {
-    statusEl.textContent = message;
-  }
-}
-
-function updateCallQuality(quality) {
-  const qualityEl = document.querySelector('.call-quality');
-  if(!qualityEl) return;
-  
-  const qualityMap = {
-    'excellent': { icon: '📶', text: 'Excellent', detail: 'Qualité excellente' },
-    'good': { icon: '📶', text: 'Bon', detail: 'Qualité bonne' },
-    'poor': { icon: '⚠️', text: 'Faible', detail: 'Qualité faible' },
-    'verypoor': { icon: '📍', text: 'Très faible', detail: 'Qualité très faible' }
-  };
-  
-  const q = qualityMap[quality] || qualityMap.good;
-  qualityEl.textContent = `${q.icon} ${q.text}`;
-  
-  // Also update the call page quality detail
-  updateCallPageQuality(q.detail);
-}
-
-/* ═══════════════════════════════════
-   📊 CALL STATISTICS & MONITORING
-═══════════════════════════════════ */
-function startMonitoringCallStats(pc, userId) {
-  let lastStats = { bytesSent: 0, bytesReceived: 0 };
-  
-  const statInterval = setInterval(async () => {
-    if(callState === 'idle' || pc.connectionState === 'closed') {
-      clearInterval(statInterval);
-      return;
-    }
-    
-    try {
-      const stats = await pc.getStats();
-      let audioQuality = 'good';
-      let bandwidth = 0;
-      let latency = 0;
-      let packetLoss = 0;
-      
-      stats.forEach(report => {
-        if(report.type === 'inbound-rtp' && report.mediaType === 'audio') {
-          const newBytesReceived = report.bytesReceived || 0;
-          const bytesReceivedDiff = newBytesReceived - lastStats.bytesReceived;
-          bandwidth += bytesReceivedDiff * 8 / 1000; // bps to kbps
-          
-          if(report.jitter > 0.1) audioQuality = 'poor';
-          if(report.packetsLost > 0) packetLoss = report.packetsLost;
-          
-          lastStats.bytesReceived = newBytesReceived;
-        }
-        
-        if(report.type === 'outbound-rtp' && report.mediaType === 'audio') {
-          const newBytesSent = report.bytesSent || 0;
-          const bytesSentDiff = newBytesSent - lastStats.bytesSent;
-          bandwidth += bytesSentDiff * 8 / 1000;
-          
-          lastStats.bytesSent = newBytesSent;
-        }
-        
-        if(report.type === 'candidate-pair' && report.state === 'succeeded' && report.currentRoundTripTime) {
-          latency = Math.round(report.currentRoundTripTime * 1000);
-        }
-      });
-      
-      // Update quality based on metrics
-      if(latency > 500 || packetLoss > 10) audioQuality = 'poor';
-      else if(latency > 200 || packetLoss > 5) audioQuality = 'good';
-      else audioQuality = 'excellent';
-      
-      updateCallQuality(audioQuality);
-      updateCallStats(bandwidth, latency, packetLoss);
-      
-    } catch(e) {
-      console.log('Stats error:', e);
-    }
-  }, 1000);
-}
-
-function updateCallStats(bandwidth, latency, packetLoss) {
-  const statsEl = document.querySelector('.call-quality');
-  if(!statsEl) return;
-  
-  const bwText = bandwidth > 0 ? ` • ${Math.round(bandwidth)}kbps` : '';
-  const latencyText = latency > 0 ? ` • ${latency}ms` : '';
-  const lossText = packetLoss > 0 ? ` • 📊${packetLoss}%` : '';
-  
-  statsEl.title = `Bande: ${bwText}${latencyText}${lossText}`;
-  
-  // Also update the call page stats
-  updateCallPageStats(bandwidth, latency, packetLoss);
-}
-
-function startAudioLevelMonitoring() {
-  if(audioLevelMonitor || !audioAnalyser) return;
-  
-  const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
-  
-  audioLevelMonitor = setInterval(() => {
-    if(callState === 'idle') {
-      clearInterval(audioLevelMonitor);
-      audioLevelMonitor = null;
-      return;
-    }
-    
-    try {
-      audioAnalyser.getByteFrequencyData(dataArray);
-      const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-      callStats.audioLevel = Math.round((average / 255) * 100);
-      
-      // Update UI with audio levels
-      updateAudioLevelUI(callStats.audioLevel);
-    } catch(e) {
-      // Ignore audio monitoring errors
-    }
-  }, 100);
-}
-
-function updateAudioLevelUI(level) {
-  const muteBtn = document.querySelector('.call-mute-btn');
-  if(!muteBtn) return;
-  
-  // Visual feedback of audio level
-  const intensity = Math.min(100, level * 2);
-  if(intensity > 20) {
-    muteBtn.style.boxShadow = `0 0 0 ${Math.round(intensity / 30)}px rgba(52, 211, 153, ${intensity / 100})`;
-  } else {
-    muteBtn.style.boxShadow = 'none';
-  }
-}
-
-/* ═══════════════════════════════════
-   📞 CALL PAGE UPDATES
-═══════════════════════════════════ */
-function updateCallPageStats(bandwidth, latency, packetLoss) {
-  // Update duration
-  const durationEl = document.getElementById('call-duration');
-  if(durationEl && callStartTime) {
-    const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
-    durationEl.textContent = formatDuration(elapsed);
-  }
-  
-  // Update latency
-  const latencyEl = document.getElementById('call-latency');
-  if(latencyEl && latency > 0) {
-    latencyEl.textContent = `${latency}ms`;
-  }
-  
-  // Update audio level
-  const audioLevelEl = document.getElementById('call-audio-level');
-  if(audioLevelEl && callStats.audioLevel > 0) {
-    audioLevelEl.textContent = `${callStats.audioLevel}%`;
-  }
-  
-  // Update quality stat
-  const qualityStat = document.getElementById('call-quality-stat');
-  if(qualityStat) {
-    if(latency < 150 && packetLoss === 0) {
-      qualityStat.textContent = '⭐⭐⭐';
-    } else if(latency < 300 && packetLoss < 5) {
-      qualityStat.textContent = '⭐⭐';
-    } else {
-      qualityStat.textContent = '⭐';
-    }
-  }
-}
-
-function updateCallPageQuality(qualityText) {
-  const qualityEl = document.getElementById('call-quality-detail');
-  if(qualityEl) {
-    qualityEl.textContent = qualityText;
-  }
-}
-
-window.toggleCallHistory = function() {
-  const historyPanel = document.getElementById('call-history-panel');
-  if(!historyPanel) return;
-  
-  historyPanel.classList.toggle('visible');
-  
-  // Load and display history when opened
-  if(historyPanel.classList.contains('visible')) {
-    renderCallHistory();
-  }
-};
-
-function renderCallHistory() {
-  const historyList = document.getElementById('call-history-list');
-  if(!historyList) return;
-  
-  const callHistory = JSON.parse(localStorage.getItem('callHistory') || '[]');
-  
-  if(callHistory.length === 0) {
-    historyList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text3); font-size: 0.85rem;">Aucun historique d\'appels</div>';
-    return;
-  }
-  
-  historyList.innerHTML = callHistory.map((call, idx) => {
-    const date = new Date(call.timestamp);
-    const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-    const statusIcon = call.status === 'completed' ? '✓' : '!';
-    
-    return `
-      <div class="call-history-item" onclick="callUserFromHistory('${call.with}', '${esc(call.withName)}')">
-        <div class="call-history-name">${esc(call.withName)}</div>
-        <div class="call-history-info">
-          <span>${statusIcon} ${formatDuration(call.duration)}</span>
-          <span>${dateStr} ${timeStr}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-window.callUserFromHistory = async function(userId, userName) {
-  // Close history panel
-  const historyPanel = document.getElementById('call-history-panel');
-  if(historyPanel) historyPanel.classList.remove('visible');
-  
-  // Try to open conversation with this user
-  const snap = await get(ref(db, 'conversations'));
-  if(snap.exists()) {
-    for(const [id, c] of Object.entries(snap.val())) {
-      if(c.type === 'direct' && c.members?.[currentUser.id] && c.members?.[userId]) {
-        openConv(id);
-        setTimeout(() => initiateCall(), 500);
-        return;
-      }
-    }
-  }
-  
-  // Create new conversation
-  const nr = push(ref(db, 'conversations'));
-  await set(nr, {type: 'direct', members: {[currentUser.id]: true, [userId]: true}, lastMsg: '', lastTime: Date.now()});
-  openConv(nr.key);
-  setTimeout(() => initiateCall(), 500);
-};
-
-// Global audio context and ringtone control
-let globalAudioCtx = null;
-let ringtoneInterval = null;
-let ringtoneOscillators = [];
-
-function initAudioContext() {
-  if(!globalAudioCtx) {
-    try {
-      globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      // Resume audio context on user interaction
-      if(globalAudioCtx.state === 'suspended') {
-        document.addEventListener('click', () => {
-          globalAudioCtx?.resume?.();
-        }, { once: true });
-      }
-    } catch(e) {
-      console.warn('Audio context initialization failed:', e);
-    }
-  }
-  return globalAudioCtx;
-}
-
-function stopRingtone() {
-  if(ringtoneInterval) {
-    clearInterval(ringtoneInterval);
-    ringtoneInterval = null;
-  }
-  ringtoneOscillators.forEach(osc => {
-    try {
-      osc.stop();
-    } catch(e) {}
-  });
-  ringtoneOscillators = [];
-}
-
-function playCallSound(type) {
-  try {
-    console.log(`[SOUND] Attempting to play: ${type}`);
-    
-    const audioCtx = initAudioContext();
-    if(!audioCtx) {
-      console.warn('[SOUND] No audio context');
-      return;
-    }
-    
-    console.log(`[SOUND] Audio context state: ${audioCtx.state}`);
-    
-    // Resume suspended context
-    if(audioCtx.state === 'suspended') {
-      console.log('[SOUND] Context suspended, resuming...');
-      audioCtx.resume().then(() => {
-        console.log('[SOUND] Context resumed, retrying...');
-        setTimeout(() => playCallSound(type), 50);
-      }).catch(e => {
-        console.warn('[SOUND] Resume failed:', e);
-      });
-      return;
-    }
-    
-    const gainNode = audioCtx.createGain();
-    gainNode.connect(audioCtx.destination);
-    
-    if(type === 'incoming') {
-      console.log('[SOUND] Starting incoming ringtone');
-      // Stop any previous ringtone
-      stopRingtone();
-      
-      // Nordic/European style ringtone - repeating pattern
-      const playOneRing = () => {
-        try {
-          const osc1 = audioCtx.createOscillator();
-          const osc2 = audioCtx.createOscillator();
-          const ringGain = audioCtx.createGain();
-          
-          osc1.frequency.value = 800;  // Low tone
-          osc2.frequency.value = 1200; // High tone
-          
-          ringGain.connect(audioCtx.destination);
-          osc1.connect(ringGain);
-          osc2.connect(ringGain);
-          
-          // Louder volume for ringtone
-          ringGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-          ringGain.gain.exponentialRampToValueAtTime(0.05, audioCtx.currentTime + 0.5);
-          
-          const now = audioCtx.currentTime;
-          osc1.start(now);
-          osc1.stop(now + 0.25);
-          osc2.start(now + 0.25);
-          osc2.stop(now + 0.5);
-          
-          ringtoneOscillators.push(osc1, osc2);
-          console.log('[SOUND] 🔊 Ring played');
-        } catch(e) {
-          console.warn('[SOUND] Ring error:', e);
-        }
-      };
-      
-      // Play first ring immediately and repeat every 2 seconds
-      playOneRing();
-      ringtoneInterval = setInterval(playOneRing, 2000);
-      
-    } else if(type === 'connected') {
-      console.log('[SOUND] Playing connected chime');
-      // Stop ringtone if playing
-      stopRingtone();
-      
-      // Connection success - pleasant chime
-      const osc = audioCtx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1500, audioCtx.currentTime);
-      osc.frequency.lineToValueAtTime(1200, audioCtx.currentTime + 0.1);
-      
-      gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-      
-      osc.connect(gainNode);
-      osc.start(audioCtx.currentTime);
-      osc.stop(audioCtx.currentTime + 0.3);
-      
-    } else if(type === 'outgoing') {
-      console.log('[SOUND] Playing outgoing dial tone');
-      // Dial tone with slight variation
-      const osc = audioCtx.createOscillator();
-      osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
-      
-      gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-      
-      osc.connect(gainNode);
-      osc.start(audioCtx.currentTime);
-      osc.stop(audioCtx.currentTime + 0.4);
-    }
-  } catch(e) {
-    console.warn('[SOUND] Playback error:', e);
-  }
-}
-
-/* 🔊 AUDIO TEST FUNCTION */
-window.testMicrophone = async function() {
-  notify('🔊 Test microphone', {
-    message: 'Vérification de votre microphone...',
-    type: 'info',
-    duration: 2000,
-    sound: false
-  });
-  
-  try {
-    const testStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    
-    // Create audio context to test
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const analyser = audioCtx.createAnalyser();
-    const source = audioCtx.createMediaStreamSource(testStream);
-    source.connect(analyser);
-    
-    // Check audio levels for 2 seconds
-    let audioDetected = false;
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    
-    const testInterval = setInterval(() => {
-      analyser.getByteFrequencyData(dataArray);
-      const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-      if(average > 30) audioDetected = true;
-    }, 100);
-    
-    // Stop test after 2 seconds
-    setTimeout(() => {
-      clearInterval(testInterval);
-      
-      // Clean up
-      testStream.getTracks().forEach(t => t.stop());
-      try { audioCtx.close(); } catch(e) {}
-      
-      if(audioDetected) {
-        notify('✅ Microphone OK', {
-          message: 'Votre microphone fonctionne correctement',
-          type: 'success',
-          duration: 2000,
-          sound: true
-        });
-      } else {
-        notify('⚠️ Aucun son détecté', {
-          message: 'Vérifiez votre microphone',
-          type: 'warning',
-          duration: 3000,
-          sound: false
-        });
-      }
-    }, 2000);
-    
-  } catch(e) {
-    notify('❌ Erreur micophone', {
-      message: e.message,
-      type: 'error',
-      duration: 3000,
-      sound: false
-    });
-  }
-};
-
+// ── INITIER UN APPEL (caller) ──
 window.initiateCall = async function() {
-  if(!currentConvId) {
-    showToast('Sélectionnez une conversation');
-    return;
-  }
-  
+  if(!currentConvId) { showToast('Sélectionnez une conversation'); return; }
   const conv = conversations[currentConvId];
-  if(conv.type !== 'direct') {
-    showToast('Les appels ne fonctionnent qu\'en conversation directe');
-    return;
-  }
-  
+  if(conv.type !== 'direct') { showToast('Appels disponibles uniquement en conversation directe'); return; }
+  if(callState !== 'idle') { showToast('Un appel est déjà en cours'); return; }
+
   const otherUserId = Object.keys(conv.members || {}).find(m => m !== currentUser.id);
-  if(!otherUserId) {
-    showToast('Impossible de trouver le destinataire');
-    return;
-  }
-  
-  if(callState && callState !== 'idle') {
-    showToast('Un appel est déjà en cours');
-    return;
-  }
-  
+  if(!otherUserId) return;
+
   try {
     callState = 'calling';
     currentCallUser = otherUserId;
-    callStartTime = Date.now();
-    
-    // Get microphone access
+
+    // 1. Obtenir le micro EN PREMIER
     await getLocalStream();
-    
-    // Create peer connection
-    const pc = await createPeerConnection(otherUserId);
-    
-    // Create and send offer
-    const offer = await pc.createOffer({
-      offerToReceiveAudio: true,
-      offerToReceiveVideo: false
-    });
+
+    // 2. Créer la PeerConnection (les tracks sont ajoutés à l'intérieur)
+    const pc = createPeerConnection();
+
+    // 3. Créer l'offre
+    const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
     await pc.setLocalDescription(offer);
-    
-    // Send call signal through Firebase with retry logic
-    const maxRetries = 3;
-    let retries = 0;
-    let callSent = false;
-    
-    while(retries < maxRetries && !callSent) {
-      try {
-        await set(ref(db, `calls/${currentUser.id}/${otherUserId}`), {
-          type: 'offer',
-          offer: JSON.stringify(offer),
-          from: currentUser.id,
-          fromName: currentUser.name,
-          timestamp: Date.now(),
-          status: 'calling'
-        });
-        callSent = true;
-        playCallSound('outgoing');
-      } catch(e) {
-        retries++;
-        if(retries < maxRetries) {
-          await new Promise(r => setTimeout(r, 500));
-        }
-      }
-    }
-    
-    if(!callSent) {
-      throw new Error('Impossible d\'établir l\'appel');
-    }
-    
-    const targetUserName = allUsers[otherUserId]?.name || 'l\'utilisateur';
-    showToast(`📞 Appel en cours vers ${targetUserName}…`);
+    console.log('[CALL] Offre créée et définie comme LocalDescription');
+
+    // 4. Envoyer l'offre via Firebase
+    await set(ref(db, `calls/${currentUser.id}/${otherUserId}`), {
+      type: 'offer',
+      offer: JSON.stringify(offer),
+      fromName: currentUser.name,
+      ts: Date.now()
+    });
+
+    // 5. Écouter la réponse
+    listenForAnswer(otherUserId);
+
     showCallUI(otherUserId, 'outgoing');
-    
-    // Timeout after 30 seconds
+    playTone(800, 0.3, 0.2);
+
     callTimeout = setTimeout(() => {
       if(callState === 'calling') {
         showToast('❌ Appel non répondu');
-        addMissedCall(otherUserId, 'missed_outgoing', targetUserName);
         window.endCall();
       }
     }, 30000);
-    
+
   } catch(e) {
-    console.error('Call error:', e);
-    showToast('❌ Erreur lors de l\'appel: ' + e.message);
-    callState = 'idle';
-    currentCallUser = null;
+    console.error('[CALL] Erreur:', e);
+    showToast('❌ ' + (e.name === 'NotAllowedError' ? 'Accès micro refusé' : 'Erreur lors de l\'appel'));
+    callState = 'idle'; currentCallUser = null;
+    if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
   }
+};
+
+function listenForAnswer(toUserId) {
+  const answerRef = ref(db, `calls/${toUserId}/${currentUser.id}`);
+  const unsubAnswer = onValue(answerRef, async (snap) => {
+    const data = snap.val();
+    if(!data) return;
+
+    if(data.type === 'answer' && peerConnection && !peerConnection.remoteDescription) {
+      console.log('[CALL] Réponse reçue, application de RemoteDescription');
+      try {
+        const answer = JSON.parse(data.answer);
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        console.log('[CALL] RemoteDescription définie ✅');
+        callState = 'connected';
+
+        // Maintenant on peut commencer à écouter les ICE candidates
+        startListeningCandidates(toUserId);
+        await flushPendingCandidates();
+
+        unsubAnswer(); // Arrêter d'écouter la réponse
+      } catch(e) {
+        console.error('[CALL] Erreur setRemoteDescription:', e);
+      }
+    } else if(data.type === 'rejected' || data.type === 'ended') {
+      showToast(data.type === 'rejected' ? '📵 Appel refusé' : '📞 Appel terminé');
+      unsubAnswer();
+      window.endCall();
+    }
+  });
 }
 
+// ── RÉCEPTION D'UN APPEL (callee) ──
 window.handleIncomingCall = async function(fromUserId, callData) {
-  console.log(`[INCOMING] Call received from: ${fromUserId}`, callData);
-  
-  if(callState && callState !== 'idle') {
-    console.log(`[INCOMING] Rejecting - already in call state: ${callState}`);
-    // Busy - reject and record as missed
-    try {
-      await set(ref(db, `calls/${fromUserId}/${currentUser.id}`), {
-        type: 'rejected',
-        reason: 'user_busy',
-        timestamp: Date.now()
-      });
-      const senderName = allUsers[fromUserId]?.name || 'Utilisateur';
-      addMissedCall(fromUserId, 'rejected_busy', senderName);
-      notify('📞 Appel rejeté', {
-        message: `${senderName} a appelé (occupé)`,
-        type: 'call',
-        duration: 4000,
-        sound: false
-      });
-    } catch(e) {
-      console.error('Error rejecting call:', e);
-    }
+  console.log('[INCOMING] Appel de:', fromUserId);
+  if(callState !== 'idle') {
+    // Occupé
+    await set(ref(db, `calls/${currentUser.id}/${fromUserId}`), { type: 'rejected', reason: 'busy', ts: Date.now() });
     return;
   }
-  
-  console.log(`[INCOMING] Setting state to incoming`);
+
   callState = 'incoming';
   currentCallUser = fromUserId;
-  callStartTime = Date.now();
-  
-  // Show notification
   const callerName = allUsers[fromUserId]?.name || 'Utilisateur';
-  console.log(`[INCOMING] Caller name: ${callerName}`);
-  
-  // Play ringtone immediately!
-  console.log('[INCOMING] Playing ringtone');
-  playCallSound('incoming');
-  
-  console.log('[INCOMING] Showing notification');
-  notify('📞 Appel entrant', {
-    message: `de ${callerName}…`,
-    type: 'call',
-    icon: '📞',
-    duration: 0, // Don't auto-close
-    sound: true,
-    browser: true,
-    requireInteraction: true,
-    tag: 'incoming-call-' + fromUserId
+
+  startRingtone();
+  notify('📞 Appel entrant', { message: `de ${callerName}`, type: 'info', icon: '📞', duration: 0, sound: false });
+  showCallUI(fromUserId, 'incoming');
+  updateCallStatus(`📞 ${callerName} vous appelle…`);
+
+  // Pré-obtenir le micro pendant que l'utilisateur voit l'UI d'appel entrant
+  getLocalStream().catch(e => {
+    console.warn('[INCOMING] Impossible d\'obtenir le micro à l\'avance:', e);
   });
-  
+
+  // Stocker les données de l'offre pour acceptCall
+  window._pendingOffer = { fromUserId, offerData: callData };
+};
+
+window.acceptCall = async function() {
+  if(callState !== 'incoming' || !window._pendingOffer) return;
+  const { fromUserId, offerData } = window._pendingOffer;
+  window._pendingOffer = null;
+  stopRingtone();
+  updateCallStatus('Connexion en cours…');
+
   try {
+    // 1. Obtenir le micro
     await getLocalStream();
-    const pc = await createPeerConnection(fromUserId);
-    
-    const offer = JSON.parse(callData.offer);
+
+    // 2. Créer la PeerConnection avec les tracks
+    const pc = createPeerConnection();
+
+    // 3. Appliquer la RemoteDescription (offre)
+    const offer = JSON.parse(offerData.offer);
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
-    
-    const answer = await pc.createAnswer({
-      offerToReceiveAudio: true,
-      offerToReceiveVideo: false
-    });
+    console.log('[ANSWER] RemoteDescription (offre) définie ✅');
+
+    // 4. Maintenant écouter les ICE candidates (APRÈS setRemoteDescription!)
+    startListeningCandidates(fromUserId);
+    await flushPendingCandidates();
+
+    // 5. Créer la réponse
+    const answer = await pc.createAnswer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
     await pc.setLocalDescription(answer);
-    
+    console.log('[ANSWER] Réponse créée et définie comme LocalDescription ✅');
+
+    // 6. Envoyer la réponse
     await set(ref(db, `calls/${currentUser.id}/${fromUserId}`), {
       type: 'answer',
       answer: JSON.stringify(answer),
-      from: currentUser.id,
-      timestamp: Date.now(),
-      status: 'connected'
+      ts: Date.now()
     });
-    
+
     callState = 'connected';
-    stopRingtone(); // Stop the ringtone
-    playCallSound('connected');
-    notify('✅ Appel connecté', {
-      message: `avec ${callerName}`,
-      type: 'success',
-      icon: '✅',
-      duration: 2000,
-      sound: true
-    });
-    showCallUI(fromUserId, 'incoming');
-    startCallDurationTimer();
-    
+    console.log('[ANSWER] ✅ Appel accepté et réponse envoyée');
+
   } catch(e) {
-    console.error('Answer error:', e);
-    notify('❌ Erreur de connexion', {
-      message: e.message,
-      type: 'error',
-      duration: 3000,
-      sound: false
-    });
-    const senderName = allUsers[fromUserId]?.name || 'Utilisateur';
-    addMissedCall(fromUserId, 'connection_error', senderName);
+    console.error('[ANSWER] Erreur:', e);
+    showToast('❌ Erreur de connexion: ' + e.message);
     window.endCall();
   }
 };
 
-function addMissedCall(userId, type, userName) {
-  const missedCall = {
-    userId,
-    userName,
-    type, // 'missed_outgoing', 'rejected_busy', 'connection_error', 'declined'
-    timestamp: Date.now()
-  };
-  missedCalls.unshift(missedCall);
-  if(missedCalls.length > 50) missedCalls.pop(); // Keep last 50
-  localStorage.setItem('missedCalls', JSON.stringify(missedCalls));
-  console.log('Missed call recorded:', missedCall);
-}
+window.rejectCall = async function() {
+  if(!currentCallUser) return;
+  stopRingtone();
+  await set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), { type: 'rejected', reason: 'declined', ts: Date.now() });
+  window._pendingOffer = null;
+  window.endCall();
+};
 
-window.handleCallAnswer = async function(toUserId, answerData) {
-  const pc = peerConnections[toUserId];
-  if(!pc) return;
-  
-  try {
-    const answer = JSON.parse(answerData.answer);
-    await pc.setRemoteDescription(new RTCSessionDescription(answer));
-    callState = 'connected';
-    showToast('✅ Appel connecté');
-  } catch(e) {
-    console.error('Answer set error:', e);
+window.toggleMute = function() {
+  if(!localStream) return;
+  const track = localStream.getAudioTracks()[0];
+  if(!track) return;
+  track.enabled = !track.enabled;
+  const btn = document.querySelector('.call-mute-btn');
+  if(btn) {
+    btn.classList.toggle('muted', !track.enabled);
+    btn.title = track.enabled ? 'Couper le micro' : 'Activer le micro';
+  }
+  notify(track.enabled ? '🎤 Micro activé' : '🔇 Micro coupé', { type: 'info', duration: 1500, sound: false });
+};
+
+window.endCall = function() {
+  console.log('[ENDCALL] Fermeture de l\'appel');
+  stopRingtone();
+  if(callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
+  if(callDurationInterval) { clearInterval(callDurationInterval); callDurationInterval = null; }
+  if(audioLevelMonitor) { clearInterval(audioLevelMonitor); audioLevelMonitor = null; }
+
+  const callDuration = callStartTime ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
+
+  // Signaler la fin à l'autre utilisateur
+  if(currentCallUser && currentUser) {
+    set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), {
+      type: 'ended', ts: Date.now(), duration: callDuration
+    }).catch(() => {});
+  }
+
+  // Arrêter écoute ICE candidates
+  if(iceCandidateUnsubscribe) {
+    try { iceCandidateUnsubscribe(); } catch(e) {}
+    iceCandidateUnsubscribe = null;
+  }
+
+  // Fermer la PeerConnection
+  if(peerConnection) {
+    try { peerConnection.close(); } catch(e) {}
+    peerConnection = null;
+  }
+
+  // Arrêter le micro
+  if(localStream) {
+    localStream.getTracks().forEach(t => { try { t.stop(); } catch(e) {} });
+    localStream = null;
+  }
+
+  // Supprimer l'élément audio distant
+  if(remoteAudioEl) {
+    remoteAudioEl.pause();
+    remoteAudioEl.srcObject = null;
+    try { remoteAudioEl.remove(); } catch(e) {}
+    remoteAudioEl = null;
+  }
+
+  // Nettoyer les données Firebase de l'appel en cours
+  if(currentUser && currentCallUser) {
+    setTimeout(() => {
+      remove(ref(db, `calls/${currentUser.id}/${currentCallUser}/candidates`)).catch(() => {});
+    }, 2000);
+  }
+
+  // Sauvegarder l'historique
+  if(callStartTime && callDuration > 0 && currentCallUser) {
+    try {
+      const history = JSON.parse(localStorage.getItem('callHistory') || '[]');
+      history.unshift({ with: currentCallUser, withName: allUsers[currentCallUser]?.name || '?', duration: callDuration, ts: Date.now(), status: 'completed' });
+      if(history.length > 50) history.pop();
+      localStorage.setItem('callHistory', JSON.stringify(history));
+    } catch(e) {}
+  }
+
+  // Remettre l'état à zéro
+  callState = 'idle';
+  currentCallUser = null;
+  callStartTime = null;
+  pendingCandidates = [];
+  reconnectAttempts = 0;
+  window._pendingOffer = null;
+
+  // Cacher l'overlay
+  const overlay = document.getElementById('call-overlay');
+  if(overlay) overlay.classList.remove('visible');
+
+  if(callDuration > 5) {
+    notify('📞 Appel terminé', { message: `Durée : ${formatDuration(callDuration)}`, type: 'info', duration: 3000, sound: false });
   }
 };
 
-function playRemoteAudio(userId, stream) {
-  let audio = document.getElementById(`remote-audio-${userId}`);
-  if(!audio) {
-    audio = document.createElement('audio');
-    audio.id = `remote-audio-${userId}`;
-    audio.autoplay = true;
-    audio.playsinline = true;
-    audio.controls = false; // Don't show controls for remote audio
-    
-    // Better audio settings for call quality
-    audio.style.cssText = 'display:none;';
-    
-    // Add error handling
-    audio.addEventListener('error', (e) => {
-      console.error('Remote audio playback error:', e);
-      notify('⚠️ Problème audio', {
-        message: 'Impossible de lire l\'audio distant',
-        type: 'warning',
-        duration: 3000,
-        sound: false
-      });
-    });
-    
-    audio.addEventListener('play', () => {
-      console.log('✅ Remote audio playback started');
-    });
-    
-    document.body.appendChild(audio);
-  }
-  
-  audio.srcObject = stream;
-  
-  // Try to play with fallback
-  const playPromise = audio.play();
-  if(playPromise !== undefined) {
-    playPromise
-      .catch(e => {
-        console.log('Audio autoplay blocked - retrying with user interaction:', e);
-        // Retry on user interaction
-        document.addEventListener('click', () => {
-          audio.play().catch(err => console.log('Still blocked:', err));
-        }, { once: true });
-      });
-  }
+// ── LISTENER D'APPELS ENTRANTS ──
+function setupCallListener() {
+  const processedOffers = new Set();
+
+  onValue(ref(db, `calls`), snap => {
+    const allCalls = snap.val();
+    if(!allCalls) return;
+
+    // Chercher les appels DESTINÉS à l'utilisateur courant
+    for(const [fromUserId, destinations] of Object.entries(allCalls)) {
+      if(fromUserId === currentUser.id) continue; // Ce sont nos propres appels
+      if(!destinations || typeof destinations !== 'object') continue;
+
+      const callData = destinations[currentUser.id];
+      if(!callData || typeof callData !== 'object') continue;
+
+      // Appel entrant (offre)
+      if(callData.type === 'offer') {
+        const offerId = `${fromUserId}_${callData.ts}`;
+        if(!processedOffers.has(offerId)) {
+          processedOffers.add(offerId);
+          console.log('[LISTENER] Appel entrant de:', fromUserId);
+          window.handleIncomingCall(fromUserId, callData);
+        }
+      }
+
+      // Fin d'appel ou refus
+      if((callData.type === 'ended' || callData.type === 'rejected') && callState !== 'idle') {
+        if(currentCallUser === fromUserId) {
+          console.log('[LISTENER] Appel terminé par:', fromUserId);
+          stopRingtone();
+          window.endCall();
+        }
+      }
+    }
+  });
 }
 
+// ── HISTORIQUE D'APPELS ──
+window.toggleCallHistory = function() {
+  const panel = document.getElementById('call-history-panel');
+  if(!panel) return;
+  panel.classList.toggle('visible');
+  if(panel.classList.contains('visible')) renderCallHistory();
+};
+
+function renderCallHistory() {
+  const list = document.getElementById('call-history-list'); if(!list) return;
+  const history = JSON.parse(localStorage.getItem('callHistory') || '[]');
+  if(!history.length) { list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:.85rem">Aucun historique</div>'; return; }
+  list.innerHTML = history.map(call => {
+    const date = new Date(call.ts);
+    return `<div class="call-history-item">
+      <div class="call-history-name">${esc(call.withName)}</div>
+      <div class="call-history-info">
+        <span>✓ ${formatDuration(call.duration)}</span>
+        <span>${date.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})} ${date.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── UI APPEL ──
 function showCallUI(userId, direction) {
-  const overlay = document.getElementById('call-overlay') || createCallOverlay();
-  const userName = (allUsers[userId] || {}).name || 'Utilisateur';
-  const avatar = overlay.querySelector('.call-avatar');
-  const nameEl = overlay.querySelector('.call-name');
-  const statusEl = overlay.querySelector('.call-status');
+  let overlay = document.getElementById('call-overlay');
+  if(!overlay) overlay = createCallOverlay();
+  const userName = allUsers[userId]?.name || 'Utilisateur';
+  overlay.querySelector('.call-avatar').textContent = userName[0].toUpperCase();
+  overlay.querySelector('.call-name').textContent = userName;
   const directionEl = overlay.querySelector('.call-direction');
-  const qualityEl = overlay.querySelector('.call-quality') || createQualityIndicator(overlay);
-  
-  avatar.textContent = userName[0].toUpperCase();
-  avatar.title = `Appel avec ${userName}`;
-  nameEl.textContent = userName;
-  
-  // Better status messages
-  if(direction === 'incoming') {
-    statusEl.textContent = `📞 Appel entrant…`;
-  } else {
-    statusEl.textContent = `📞 Appel en cours…`;
-  }
-  
   directionEl.style.display = direction === 'incoming' ? 'flex' : 'none';
-  qualityEl.textContent = '📶 Connexion…';
-  qualityEl.title = 'Cliquez pour voir les détails réseau';
-  
+  if(direction === 'outgoing') updateCallStatus('📞 Appel en cours…');
   overlay.classList.add('visible');
-  
-  // Log call started
-  console.log(`📞 ${direction === 'incoming' ? 'Appel entrant' : 'Appel sortant'} avec ${userName}`);
-}
-
-function createQualityIndicator(overlay) {
-  const qualityEl = document.createElement('div');
-  qualityEl.className = 'call-quality';
-  qualityEl.style.cssText = `
-    font-size: 0.85rem;
-    color: var(--text2);
-    margin-top: 12px;
-    text-align: center;
-  `;
-  qualityEl.textContent = '📶 Bon';
-  
-  const statusEl = overlay.querySelector('.call-status');
-  if(statusEl && statusEl.parentNode) {
-    statusEl.parentNode.insertBefore(qualityEl, statusEl.nextSibling);
-  }
-  return qualityEl;
 }
 
 function createCallOverlay() {
   const overlay = document.createElement('div');
   overlay.id = 'call-overlay';
   overlay.innerHTML = `
-    <button class="call-history-toggle" onclick="toggleCallHistory()" title="Historique">📞 Historique</button>
+    <button class="call-history-toggle" onclick="toggleCallHistory()">📞 Historique</button>
     <div class="call-panel">
       <div class="call-header">
-        <div class="call-avatar" id="call-avatar"></div>
+        <div class="call-avatar"></div>
         <div>
-          <div class="call-name" id="call-name"></div>
-          <div class="call-status"></div>
+          <div class="call-name"></div>
+          <div class="call-status">📞 Connexion…</div>
         </div>
       </div>
-      <div class="call-stats" id="call-stats">
-        <div class="stat-item">
-          <div class="stat-label">Durée</div>
-          <div class="stat-value" id="call-duration">0:00</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Qualité</div>
-          <div class="stat-value" id="call-quality-stat">📶</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Latence</div>
-          <div class="stat-value" id="call-latency">—</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Audio</div>
-          <div class="stat-value" id="call-audio-level">—</div>
-        </div>
+      <div class="call-stats">
+        <div class="stat-item"><div class="stat-label">Durée</div><div class="stat-value" id="call-duration">0:00</div></div>
+        <div class="stat-item"><div class="stat-label">État</div><div class="stat-value" id="call-quality-stat">📶</div></div>
+        <div class="stat-item"><div class="stat-label">Latence</div><div class="stat-value" id="call-latency">—</div></div>
+        <div class="stat-item"><div class="stat-label">Audio</div><div class="stat-value" id="call-audio-level">—</div></div>
       </div>
-      <div class="call-quality" id="call-quality-detail"></div>
+      <div class="call-quality" id="call-quality-detail">En attente de connexion…</div>
       <div class="call-direction">
         <button class="call-accept-btn" onclick="acceptCall()" title="Accepter">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -2417,9 +1793,7 @@ function createCallOverlay() {
         </button>
       </div>
       <div class="call-controls">
-        <button class="call-mute-btn" onclick="toggleMute()" title="Muet">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
-        </button>
+        <button class="call-mute-btn" onclick="toggleMute()" title="Couper le micro">🎤</button>
         <button class="call-end-btn" onclick="endCall()" title="Terminer">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         </button>
@@ -2428,229 +1802,13 @@ function createCallOverlay() {
     <div class="call-history-panel" id="call-history-panel">
       <div class="call-history-header">
         <span class="call-history-title">📞 Historique</span>
-        <button class="call-history-close" onclick="toggleCallHistory()" title="Fermer">✕</button>
+        <button class="call-history-close" onclick="toggleCallHistory()">✕</button>
       </div>
       <div class="call-history-list" id="call-history-list"></div>
     </div>
   `;
-  
   document.body.appendChild(overlay);
   return overlay;
-  
-  document.body.appendChild(overlay);
-  return overlay;
-}
-
-window.acceptCall = async () => {
-  if(callState !== 'incoming') {
-    console.warn('Cannot accept call - not in incoming state');
-    return;
-  }
-  callState = 'connected';
-  showToast('✅ Appel accepté');
-  startCallDurationTimer();
-};
-
-window.rejectCall = async () => {
-  if(!currentCallUser) return;
-  stopRingtone(); // Stop the ringtone
-  try {
-    await set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), {
-      type: 'rejected',
-      reason: 'declined',
-      timestamp: Date.now()
-    });
-    const callerName = allUsers[currentCallUser]?.name || 'Utilisateur';
-    addMissedCall(currentCallUser, 'declined', callerName);
-    showToast('Appel refusé');
-  } catch(e) {
-    console.error('Error rejecting call:', e);
-    showToast('❌ Erreur lors du refus');
-  }
-  endCall();
-};
-
-window.toggleMute = () => {
-  if(!localStream) {
-    notify('⚠️ Microphone non disponible', {
-      type: 'warning',
-      duration: 2000,
-      sound: false
-    });
-    return;
-  }
-  
-  const isMuted = localStream.getAudioTracks()[0]?.enabled === false;
-  
-  localStream.getAudioTracks().forEach(track => {
-    track.enabled = !track.enabled;
-  });
-  
-  const btn = document.querySelector('.call-mute-btn');
-  if(btn) {
-    btn.classList.toggle('muted', !isMuted);
-    btn.title = isMuted ? '🔊 Microphone activé' : '🔇 Microphone désactivé';
-    btn.style.boxShadow = !isMuted ? 'inset 0 0 0 2px var(--danger)' : 'none';
-  }
-  
-  // Show notification
-  notify(isMuted ? '🔊 Micro activé' : '🔇 Micro désactivé', {
-    type: 'info',
-    duration: 1500,
-    sound: false
-  });
-};
-
-window.endCall = () => {
-  stopRingtone(); // Stop ringtone
-  if(callTimeout) clearTimeout(callTimeout);
-  if(callDurationInterval) clearInterval(callDurationInterval);
-  if(audioLevelMonitor) clearInterval(audioLevelMonitor);
-  
-  const callDuration = callStartTime ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
-  
-  if(currentCallUser) {
-    set(ref(db, `calls/${currentUser.id}/${currentCallUser}`), {
-      type: 'ended',
-      timestamp: Date.now(),
-      duration: callDuration
-    }).catch(e => console.error('Error sending end signal:', e));
-    
-    // Save call to history
-    const callRecord = {
-      with: currentCallUser,
-      withName: allUsers[currentCallUser]?.name || 'Utilisateur',
-      duration: callDuration,
-      timestamp: Date.now(),
-      status: callState === 'connected' ? 'completed' : 'interrupted'
-    };
-    
-    try {
-      const history = JSON.parse(localStorage.getItem('callHistory') || '[]');
-      history.unshift(callRecord);
-      if(history.length > 50) history.pop(); // Keep last 50 calls
-      localStorage.setItem('callHistory', JSON.stringify(history));
-    } catch(e) {
-      console.log('Error saving call history:', e);
-    }
-  }
-  
-  // Remove ICE candidates listeners
-  for(const [userId, unsubscribe] of Object.entries(iceCandidatesListeners)) {
-    if(typeof unsubscribe === 'function') {
-      try {
-        unsubscribe();
-      } catch(e) {
-        console.log('Error unsubscribing ICE candidates:', e);
-      }
-    }
-  }
-  iceCandidatesListeners = {};
-  
-  // Close peer connections
-  for(const [userId, pc] of Object.entries(peerConnections)) {
-    try {
-      pc.close();
-    } catch(e) {
-      console.error('Error closing peer connection:', e);
-    }
-  }
-  peerConnections = {};
-  remoteStreams = {};
-  
-  // Stop local stream and clean up audio
-  if(localStream) {
-    localStream.getTracks().forEach(t => {
-      try {
-        t.stop();
-      } catch(e) {
-        console.error('Error stopping track:', e);
-      }
-    });
-    localStream = null;
-  }
-  
-  // Close audio analyser if it exists
-  if(audioAnalyser && audioAnalyser.context) {
-    try {
-      audioAnalyser.context.close();
-    } catch(e) {
-      console.log('Error closing audio context:', e);
-    }
-    audioAnalyser = null;
-  }
-  
-  // Remove remote audio elements
-  document.querySelectorAll('[id^="remote-audio-"]').forEach(el => {
-    try {
-      el.pause();
-      el.srcObject = null;
-      el.remove();
-    } catch(e) {
-      console.log('Error cleaning remote audio:', e);
-    }
-  });
-  
-  // Reset call state
-  callState = 'idle';
-  currentCallUser = null;
-  callStartTime = null;
-  reconnectAttempts = 0;
-  audioLevelMonitor = null;
-  
-  // Hide call overlay
-  const overlay = document.getElementById('call-overlay');
-  if(overlay) overlay.classList.remove('visible');
-  
-  // Show notification
-  if(callDuration > 0) {
-    notify('📞 Appel terminé', {
-      message: `Durée: ${formatDuration(callDuration)}`,
-      type: 'info',
-      duration: 3000,
-      sound: false
-    });
-  }
-};
-
-// Listen for incoming calls and call events
-function setupCallListener() {
-  let lastProcessedOffers = {};
-  
-  onValue(ref(db, `calls/${currentUser.id}`), snap => {
-    const callsData = snap.val();
-    if(!callsData) return;
-    
-    for(const [fromUserId, userCallData] of Object.entries(callsData)) {
-      if(!userCallData || typeof userCallData !== 'object' || Array.isArray(userCallData)) {
-        continue;
-      }
-      
-      // Handle incoming offers (incoming call)
-      if(userCallData.type === 'offer' && userCallData.status === 'calling') {
-        const offerId = `${fromUserId}_${userCallData.timestamp}`;
-        if(!lastProcessedOffers[offerId]) {
-          lastProcessedOffers[offerId] = true;
-          console.log('📞 Incoming call from', fromUserId);
-          window.handleIncomingCall(fromUserId, userCallData);
-        }
-      } 
-      // Handle call answers
-      else if(userCallData.type === 'answer' && userCallData.status === 'connected') {
-        if(callState === 'calling' && currentCallUser === fromUserId) {
-          console.log('📞 Call answered by', fromUserId);
-          window.handleCallAnswer(fromUserId, userCallData);
-        }
-      }
-      // Handle call end/rejection events
-      else if(userCallData.type === 'rejected' || userCallData.type === 'ended') {
-        if(callState !== 'idle') {
-          console.log('Call ended/rejected by', fromUserId);
-          endCall();
-        }
-      }
-    }
-  });
 }
 
 /* ════════════════════════════════════
@@ -2679,10 +1837,9 @@ async function startRecording() {
   recTimerInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now()-recStartTime)/1000);
     document.getElementById('rec-timer').textContent = formatDuration(elapsed);
-    if(elapsed >= 300) stopAndSendRecording(); // auto-stop 5 min
+    if(elapsed >= 300) stopAndSendRecording();
   }, 500);
 
-  // Waveform live
   recAudioContext = new (window.AudioContext||window.webkitAudioContext)();
   recAnalyser     = recAudioContext.createAnalyser(); recAnalyser.fftSize=64;
   recAudioContext.createMediaStreamSource(recordingStream).connect(recAnalyser);
@@ -2710,10 +1867,8 @@ function stopAndSendRecording() {
   mediaRecorder.onstop = async () => {
     const blob = new Blob(audioChunks, {type: mimeType});
     audioChunks = [];
-
     if(blob.size < 500){ showToast('Message trop court'); return; }
-    if(blob.size > VOICE_SIZE_LIMIT){ showToast(`🎙️ Trop long — max 5 Mo (${formatSize(blob.size)})`); return; }
-
+    if(blob.size > VOICE_SIZE_LIMIT){ showToast(`🎙️ Trop long — max 5 Mo`); return; }
     const peaks = await computePeaks(blob, 40);
     showToast('Envoi du message vocal…');
     try {
@@ -2723,7 +1878,6 @@ function stopAndSendRecording() {
       await update(ref(db,`conversations/${convId}`),{lastMsg:`🎙️ Message vocal (${formatDuration(duration)})`,lastTime:Date.now()});
     } catch(e){ console.error(e); showToast('❌ Erreur envoi vocal'); }
   };
-
   stopRecordingCleanup();
 }
 window.stopAndSendRecording = stopAndSendRecording;
@@ -2768,9 +1922,6 @@ async function computePeaks(blob, n) {
   } catch(e){ return Array.from({length:n},()=>+(0.2+Math.random()*0.6).toFixed(2)); }
 }
 
-/* ════════════════════════════════════
-   🎙️ VOICE — LECTURE
-════════════════════════════════════ */
 function buildVoiceHTML(msg) {
   const peaks = msg.peaks || Array.from({length:40},()=>+(0.2+Math.random()*0.6).toFixed(2));
   const bars  = peaks.map(h=>`<div class="voice-bar" style="height:${Math.max(3,h*28)}px"></div>`).join('');
@@ -2808,10 +1959,6 @@ function setupVoicePlayer(wrap, msg, msgId) {
     activePlayers.delete(msgId);
   }
 
-  function stopOthers() {
-    for(const [id,p] of activePlayers) { if(id!==msgId){ p.reset(); } }
-  }
-
   btn.addEventListener('click', () => {
     if(!audio){
       audio = new Audio(msg.fileUrl);
@@ -2819,7 +1966,7 @@ function setupVoicePlayer(wrap, msg, msgId) {
       audio.addEventListener('error', ()=>{ showToast('❌ Lecture impossible'); reset(); });
     }
     if(audio.paused){
-      stopOthers();
+      activePlayers.forEach((p, id) => { if(id !== msgId) p.reset(); });
       audio.play().catch(()=>showToast('❌ Lecture impossible'));
       btn.classList.add('playing'); iPlay.style.display='none'; iPause.style.display='';
       tick = setInterval(()=>{
@@ -2888,15 +2035,12 @@ window.confirmAddMembers = async () => {
   showToast(`${checked.length} membre${checked.length>1?'s':''} ajouté${checked.length>1?'s':''} !`);
 };
 
-/* ══ LIGHTBOX ══ */
 window.openLightbox  = url => { document.getElementById('lightbox-img').src=url; document.getElementById('lightbox').classList.add('open'); };
 window.closeLightbox = ()  => document.getElementById('lightbox').classList.remove('open');
 
-/* ══ TABS / SEARCH ══ */
 window.switchTab   = (tab,btn) => { currentTab=tab; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderConvList(); };
 window.filterConvs = () => renderConvList();
 
-/* ══ UTILS ══ */
 window.closeModal  = id => document.getElementById(id).classList.remove('open');
 window.autoResize  = el => { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; };
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -2904,77 +2048,33 @@ function formatTime(ts){ if(!ts)return''; const d=new Date(ts),n=new Date(); ret
 function formatSize(b){ return b<1024?`${b} o`:b<1048576?`${(b/1024).toFixed(1)} Ko`:`${(b/1048576).toFixed(1)} Mo`; }
 function formatDuration(s){ return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`; }
 function fileEmoji(t){ if(!t)return'📄'; if(t.startsWith('image/'))return'🖼️'; if(t.startsWith('video/'))return'🎬'; if(t.startsWith('audio/'))return'🎵'; if(t.includes('pdf'))return'📕'; if(t.includes('word')||t.includes('doc'))return'📝'; if(t.includes('excel')||t.includes('sheet')||t.includes('xls'))return'📊'; if(t.includes('zip')||t.includes('rar'))return'🗜️'; return'📄'; }
-/* ════════════════════════════════════
-   📢 NOTIFICATION SYSTEM
-════════════════════════════════════ */
 
-// Notification system state
+/* ════════════════════════════════════
+   📢 NOTIFICATIONS
+════════════════════════════════════ */
 const notificationState = {
-  unreadCounts: {}, // {convId: count}
+  unreadCounts: {},
   soundEnabled: localStorage.getItem('notif-sound') !== 'disabled',
-  browserNotifEnabled: localStorage.getItem('notif-browser') !== 'disabled',
   activeNotifications: new Map()
 };
 
-// Initialize browser notifications
-if('Notification' in window && notificationState.browserNotifEnabled && Notification.permission === 'default') {
-  Notification.requestPermission().catch(e => console.log('Notification permission:', e));
+if('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission().catch(()=>{});
 }
 
-// Enhanced notification function
 window.notify = function(title, options = {}) {
-  const type = options.type || 'info'; // success, error, warning, info
+  const type = options.type || 'info';
   const message = options.message || '';
-  const duration = options.duration || 4000;
-  const icon = options.icon || getNotificationIcon(type);
-  const sound = options.sound !== false && notificationState.soundEnabled;
-
-  // Show in-app notification
+  const duration = options.duration !== undefined ? options.duration : 4000;
+  const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️', call:'📞' };
+  const icon = options.icon || icons[type] || 'ℹ️';
+  if(options.sound !== false && notificationState.soundEnabled) playNotificationSound();
   showInAppNotification(title, message, icon, type, duration);
-  
-  // Play sound if enabled
-  if(sound) playNotificationSound();
-  
-  // Show browser notification if enabled
-  if(options.browser !== false && 'Notification' in window && Notification.permission === 'granted' && !document.hidden) {
-    try {
-      const notif = new Notification(title, {
-        body: message,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        tag: 'chatio-' + (options.tag || 'general'),
-        requireInteraction: options.requireInteraction || false
-      });
-      
-      if(options.onclick) {
-        notif.addEventListener('click', options.onclick);
-      }
-      
-      if(duration > 0) {
-        setTimeout(() => notif.close(), duration);
-      }
-    } catch(e) {
-      console.log('Browser notification error:', e);
-    }
-  }
 };
-
-function getNotificationIcon(type) {
-  const icons = {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
-    info: 'ℹ️',
-    message: '💬',
-    call: '📞'
-  };
-  return icons[type] || icons.info;
-}
 
 function showInAppNotification(title, message, icon, type, duration) {
   const container = document.getElementById('notification-container');
   const notifId = 'notif-' + Date.now() + Math.random();
-  
   const notifEl = document.createElement('div');
   notifEl.className = `notification ${type}`;
   notifEl.id = notifId;
@@ -2986,78 +2086,30 @@ function showInAppNotification(title, message, icon, type, duration) {
     </div>
     <button class="notification-close" onclick="removeNotification('${notifId}')" aria-label="Fermer">×</button>
   `;
-  
   container.appendChild(notifEl);
   notificationState.activeNotifications.set(notifId, notifEl);
-  
-  if(duration > 0) {
-    setTimeout(() => removeNotification(notifId), duration);
-  }
+  if(duration > 0) setTimeout(() => removeNotification(notifId), duration);
 }
 
 window.removeNotification = function(notifId) {
   const notif = notificationState.activeNotifications.get(notifId);
   if(notif) {
     notif.style.animation = 'slideOutRight .3s ease';
-    setTimeout(() => {
-      notif.remove();
-      notificationState.activeNotifications.delete(notifId);
-    }, 300);
+    setTimeout(() => { notif.remove(); notificationState.activeNotifications.delete(notifId); }, 300);
   }
 };
 
 function playNotificationSound() {
   try {
-    const audio = document.getElementById('notification-sound');
-    if(audio) {
-      // Create a simple beep sound
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const now = audioContext.currentTime;
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      
-      osc.frequency.value = 800; // 800 Hz beep
-      osc.connect(gain);
-      gain.connect(audioContext.destination);
-      
-      gain.gain.setValueAtTime(0.3, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-      
-      osc.start(now);
-      osc.stop(now + 0.2);
-    }
-  } catch(e) {
-    console.log('Sound playback error:', e);
-  }
+    const ctx = getAudioCtx(); if(!ctx) return;
+    playTone(800, 0.15, 0.2);
+  } catch(e) {}
 }
-
-window.setNotificationSound = function(enabled) {
-  notificationState.soundEnabled = enabled;
-  localStorage.setItem('notif-sound', enabled ? 'enabled' : 'disabled');
-  notify('Notifications sonores', { 
-    message: enabled ? '✓ Activées' : '✗ Désactivées',
-    type: 'success',
-    duration: 2000,
-    sound: false
-  });
-};
-
-window.setBrowserNotifications = function(enabled) {
-  notificationState.browserNotifEnabled = enabled;
-  localStorage.setItem('notif-browser', enabled ? 'enabled' : 'disabled');
-  notify('Notifications navigateur', { 
-    message: enabled ? '✓ Activées' : '✗ Désactivées',
-    type: 'success',
-    duration: 2000,
-    sound: false
-  });
-};
 
 window.incrementUnreadCount = function(convId) {
   notificationState.unreadCounts[convId] = (notificationState.unreadCounts[convId] || 0) + 1;
   updateUnreadBadges();
 };
-
 window.resetUnreadCount = function(convId) {
   delete notificationState.unreadCounts[convId];
   updateUnreadBadges();
@@ -3068,13 +2120,8 @@ function updateUnreadBadges() {
     const convId = item.getAttribute('data-conv-id');
     const count = notificationState.unreadCounts[convId];
     let badge = item.querySelector('.unread-badge');
-    
     if(count > 0) {
-      if(!badge) {
-        badge = document.createElement('div');
-        badge.className = 'unread-badge';
-        item.appendChild(badge);
-      }
+      if(!badge) { badge = document.createElement('div'); badge.className = 'unread-badge'; item.appendChild(badge); }
       badge.textContent = count > 99 ? '99+' : count;
       item.classList.add('has-unread');
     } else {
@@ -3084,12 +2131,10 @@ function updateUnreadBadges() {
   });
 }
 
-// Backward compatibility - enhanced showToast
-function showToast(msg) { 
-  const t = document.getElementById('toast'); 
-  t.textContent = msg; 
-  t.classList.add('show'); 
-  setTimeout(() => t.classList.remove('show'), 2800); 
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
 }
 
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
