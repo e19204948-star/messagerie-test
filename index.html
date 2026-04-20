@@ -378,6 +378,107 @@
   .date-sep { display:flex; align-items:center; gap:10px; margin: 8px 0; }
   .date-sep::before, .date-sep::after { content:''; flex:1; height:1px; background:var(--border); }
   .date-sep span { font-size:.72rem; color:var(--text3); white-space:nowrap; }
+  
+  /* ✅ STYLES AVANCÉS POUR LES PARAMÈTRES */
+  .settings-tab { 
+    flex:1; padding:12px 0; background:none; border:none; border-bottom:3px solid transparent; 
+    color:var(--text2); font-family:'DM Sans',sans-serif; font-size:.85rem; font-weight:600; 
+    cursor:pointer; transition:all .2s; white-space:nowrap; 
+  }
+  .settings-tab:hover { color:var(--text); }
+  .settings-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  
+  .settings-tab-content { display:none; }
+  .settings-tab-content.active { display:block; animation:fadeIn .3s; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  
+  .settings-card { 
+    padding:16px; margin-bottom:12px; background:var(--bg3); border-radius:12px; 
+    border:1px solid var(--border); transition:all .2s; 
+  }
+  .settings-card:hover { background:var(--bg4); border-color:var(--accent-glow); }
+  
+  .settings-card.settings-toggle { 
+    display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
+  }
+  
+  .settings-card.settings-profile { 
+    cursor:pointer; padding:16px; display:flex; 
+  }
+  .settings-card.settings-profile:hover { 
+    background:var(--accent-glow); border-color:var(--accent); transform:translateX(4px);
+  }
+  
+  .settings-header { 
+    font-size:.95rem; font-weight:600; color:var(--text); margin-bottom:4px;
+  }
+  .settings-desc { 
+    font-size:.80rem; color:var(--text2); 
+  }
+  
+  .settings-size-btn, .settings-time-btn, .settings-spacing-btn { 
+    flex:1; padding:10px 12px; background:var(--bg2); border:1px solid var(--border); border-radius:8px; 
+    color:var(--text2); font-family:'DM Sans',sans-serif; font-size:.85rem; font-weight:500; cursor:pointer; 
+    transition:all .2s; 
+  }
+  .settings-size-btn:hover, .settings-time-btn:hover, .settings-spacing-btn:hover { 
+    background:var(--bg3); color:var(--text); border-color:var(--accent); 
+  }
+  .settings-size-btn.active, .settings-time-btn.active, .settings-spacing-btn.active { 
+    background:var(--accent); color:white; border-color:var(--accent); box-shadow:0 4px 12px var(--accent-glow);
+  }
+  
+  input[type="range"] {
+    -webkit-appearance:none;
+    width:100%;
+    height:6px;
+    border-radius:3px;
+    background:var(--border);
+    outline:none;
+    cursor:pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance:none;
+    appearance:none;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:var(--accent);
+    cursor:pointer;
+    box-shadow:0 2px 8px var(--accent-glow);
+    transition:all .2s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform:scale(1.15);
+    box-shadow:0 4px 12px var(--accent-glow);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:var(--accent);
+    cursor:pointer;
+    border:none;
+    box-shadow:0 2px 8px var(--accent-glow);
+    transition:all .2s;
+  }
+  input[type="range"]::-moz-range-thumb:hover {
+    transform:scale(1.15);
+    box-shadow:0 4px 12px var(--accent-glow);
+  }
+  
+  /* ✅ NOUVEAU: Styles pour les paramètres */
+  .settings-size-btn, .settings-time-btn, .settings-spacing-btn { 
+    flex:1; padding:9px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; 
+    color:var(--text2); font-family:'DM Sans',sans-serif; font-size:.85rem; font-weight:500; cursor:pointer; 
+    transition:all .2s; 
+  }
+  .settings-size-btn:hover, .settings-time-btn:hover, .settings-spacing-btn:hover { 
+    background:var(--bg4); color:var(--text); border-color:var(--accent); 
+  }
+  .settings-size-btn.active, .settings-time-btn.active, .settings-spacing-btn.active { 
+    background:var(--accent); color:white; border-color:var(--accent); 
+  }
   .toast { position:fixed; bottom:24px; right:24px; left:24px; background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:12px 18px; box-shadow:var(--shadow); font-size:.88rem; color:var(--text); z-index:200; animation: toastIn .3s ease; display:none; max-width:340px; margin:0 auto; }
   .toast.show { display:block; }
   @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
@@ -548,6 +649,9 @@
         <button class="icon-btn" onclick="openThemeModal()" title="Thèmes et couleurs">
           <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="3" r="1"/><circle cx="20" cy="13" r="1"/><circle cx="16" cy="21" r="1"/><circle cx="4" cy="17" r="1"/><circle cx="5" cy="7" r="1"/></svg>
         </button>
+        <button class="icon-btn" onclick="openSettingsModal()" title="Paramètres">
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"/></svg>
+        </button>
         <button class="theme-toggle" onclick="toggleTheme()" title="Thème">
           <svg id="theme-icon2" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
@@ -662,6 +766,230 @@
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal('add-member-modal')">Annuler</button>
       <button class="btn-primary" style="flex:1" onclick="confirmAddMembers()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal" style="max-width:680px;display:flex;flex-direction:column;max-height:85vh;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid var(--border);">
+      <h3 style="margin:0;">⚙️ Paramètres Personnalisés</h3>
+      <button class="icon-btn" onclick="closeModal('settings-modal')" style="font-size:1.2rem;">✕</button>
+    </div>
+
+    <!-- Onglets -->
+    <div style="display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0;">
+      <button class="settings-tab active" data-tab="appearance" onclick="switchSettingsTab('appearance')">🎨 Apparence</button>
+      <button class="settings-tab" data-tab="audio" onclick="switchSettingsTab('audio')">🔊 Audio</button>
+      <button class="settings-tab" data-tab="advanced" onclick="switchSettingsTab('advanced')">⚡ Avancé</button>
+      <button class="settings-tab" data-tab="profiles" onclick="switchSettingsTab('profiles')">🎭 Profils</button>
+    </div>
+
+    <!-- Contenu à onglets -->
+    <div style="flex:1;overflow-y:auto;">
+
+      <!-- ONGLET: APPARENCE -->
+      <div class="settings-tab-content active" data-tab="appearance">
+        <!-- Taille de police avec prévisualisation -->
+        <div class="settings-card">
+          <div class="settings-header">📝 Taille de Police</div>
+          <div class="settings-desc">Ajustez la taille du texte dans toute l'application</div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button class="settings-size-btn" onclick="setFontSize('small')" id="size-small" title="13px">Petit</button>
+            <button class="settings-size-btn active" onclick="setFontSize('medium')" id="size-medium" title="16px">Moyen</button>
+            <button class="settings-size-btn" onclick="setFontSize('large')" id="size-large" title="18px">Grand</button>
+          </div>
+          <div style="padding:12px;background:var(--bg3);border-radius:8px;margin-top:12px;font-size:var(--preview-size, .9rem);">
+            📤 Aperçu: Ceci est le texte dans la taille actuelle
+          </div>
+        </div>
+
+        <!-- Espacement -->
+        <div class="settings-card">
+          <div class="settings-header">📋 Espacement & Densité</div>
+          <div class="settings-desc">Contrôlez la compacité de l'interface</div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button class="settings-spacing-btn" onclick="setSpacing('compact')" id="spacing-compact">Compact</button>
+            <button class="settings-spacing-btn active" onclick="setSpacing('normal')" id="spacing-normal">Normal</button>
+            <button class="settings-spacing-btn" onclick="setSpacing('spacious')" id="spacing-spacious">Spacieux</button>
+          </div>
+        </div>
+
+        <!-- Mode compact -->
+        <div class="settings-card settings-toggle">
+          <div style="flex:1;">
+            <div class="settings-header">🎯 Mode Compact</div>
+            <div class="settings-desc">Réduire les marges et le padding</div>
+          </div>
+          <input type="checkbox" id="compact-mode" onchange="toggleCompactMode()" style="width:24px;height:24px;accent-color:var(--accent);cursor:pointer;">
+        </div>
+
+        <!-- Animations -->
+        <div class="settings-card settings-toggle">
+          <div style="flex:1;">
+            <div class="settings-header">✨ Animations</div>
+            <div class="settings-desc">Transitions et effects visuels</div>
+          </div>
+          <input type="checkbox" id="animations-toggle" checked onchange="toggleAnimations()" style="width:24px;height:24px;accent-color:var(--accent);cursor:pointer;">
+        </div>
+
+        <!-- Format de l'heure -->
+        <div class="settings-card">
+          <div class="settings-header">⏰ Format de l'Heure</div>
+          <div class="settings-desc">Affichage 12h ou 24h</div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button class="settings-time-btn active" onclick="setTimeFormat('12h')" id="time-12h">12h (AM/PM)</button>
+            <button class="settings-time-btn" onclick="setTimeFormat('24h')" id="time-24h">24h</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ONGLET: AUDIO -->
+      <div class="settings-tab-content" data-tab="audio">
+        <!-- Notifications sonores -->
+        <div class="settings-card settings-toggle">
+          <div style="flex:1;">
+            <div class="settings-header">🔔 Notifications Sonores</div>
+            <div class="settings-desc">Sons pour les nouveaux messages</div>
+          </div>
+          <input type="checkbox" id="sounds-toggle" checked onchange="toggleSounds()" style="width:24px;height:24px;accent-color:var(--accent);cursor:pointer;">
+        </div>
+
+        <!-- Contrôle du volume -->
+        <div class="settings-card">
+          <div class="settings-header">🔊 Volume</div>
+          <div class="settings-desc">Niveau de volume des notifications</div>
+          <div style="display:flex;gap:12px;align-items:center;margin-top:12px;">
+            <span style="font-size:.85rem;">🔇</span>
+            <input type="range" id="volume-slider" min="0" max="100" value="70" oninput="setNotificationVolume(this.value)" style="flex:1;height:6px;border-radius:3px;background:var(--border);outline:none;-webkit-appearance:none;appearance:none;cursor:pointer;">
+            <span style="font-size:.85rem;">🔊</span>
+            <span style="font-size:.85rem;color:var(--text2);width:35px;">
+              <span id="volume-display">70</span>%
+            </span>
+          </div>
+          <button class="btn-primary" onclick="testNotificationSound()" style="width:100%;margin-top:12px;padding:9px;font-size:.85rem;">🔔 Tester le son</button>
+        </div>
+
+        <!-- Vibration -->
+        <div class="settings-card settings-toggle">
+          <div style="flex:1;">
+            <div class="settings-header">📳 Vibration</div>
+            <div class="settings-desc">Retours haptiques sur mobile</div>
+          </div>
+          <input type="checkbox" id="vibration-toggle" checked onchange="toggleVibration()" style="width:24px;height:24px;accent-color:var(--accent);cursor:pointer;">
+        </div>
+      </div>
+
+      <!-- ONGLET: AVANCÉ -->
+      <div class="settings-tab-content" data-tab="advanced">
+        <!-- Statut personnalisé -->
+        <div class="settings-card">
+          <div class="settings-header">💬 Statut Personnalisé</div>
+          <div class="settings-desc">Votre message personnel (max 40 caractères)</div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <input type="text" id="custom-status" placeholder="Ex: 🎵 En musique..." maxlength="40" 
+              style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:.88rem;outline:none;transition:border .2s;" 
+              oninput="window.updateStatusPreview()" onchange="window.saveCustomStatus()" />
+            <button class="btn-primary" onclick="saveCustomStatus()" style="padding:10px 16px;font-size:.85rem;white-space:nowrap;">✓ Sauv.</button>
+          </div>
+          <div id="status-preview" style="margin-top:8px;padding:8px 12px;background:var(--bg3);border-radius:8px;font-size:.85rem;color:var(--text2);">Aperçu: </div>
+        </div>
+
+        <!-- Cache & Stockage -->
+        <div class="settings-card">
+          <div class="settings-header">🗂️ Stockage</div>
+          <div class="settings-desc">Gérez vos données sauvegardées</div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button class="btn-secondary" onclick="exportSettings()" style="flex:1;padding:10px;">💾 Exporter</button>
+            <button class="btn-secondary" onclick="importSettings()" style="flex:1;padding:10px;">📂 Importer</button>
+            <button class="btn-secondary" onclick="clearCache()" style="flex:1;padding:10px;">🗑️ Nettoyer</button>
+          </div>
+        </div>
+
+        <!-- À propos -->
+        <div class="settings-card">
+          <div class="settings-header">ℹ️ Informations</div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:12px;font-size:.85rem;">
+            <span style="color:var(--text2);">Version:</span>
+            <span>chat·io v1.2.0</span>
+            <span style="color:var(--text2);">Storage:</span>
+            <span id="storage-info">Calculer...</span>
+            <span style="color:var(--text2);">Paramètres actifs:</span>
+            <span id="active-settings">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ONGLET: PROFILS -->
+      <div class="settings-tab-content" data-tab="profiles">
+        <div style="margin-bottom:12px;padding:12px;background:rgba(124,106,255,.1);border-radius:8px;font-size:.85rem;color:var(--text2);">
+          💡 Appliquez rapidement des profils optimisés pour différentes situations
+        </div>
+
+        <!-- Profil Travail -->
+        <div class="settings-card settings-profile" onclick="applyProfile('work')">
+          <div style="display:flex;gap:12px;">
+            <div style="font-size:2rem;">💼</div>
+            <div style="flex:1;">
+              <div class="settings-header">Profil Travail</div>
+              <div class="settings-desc">Productivité maximale</div>
+              <div style="font-size:.75rem;color:var(--text3);margin-top:6px;">
+                • Interface compacte • Sons désactivés • Format 24h
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;color:var(--text2);">→</div>
+          </div>
+        </div>
+
+        <!-- Profil Relax -->
+        <div class="settings-card settings-profile" onclick="applyProfile('relax')">
+          <div style="display:flex;gap:12px;">
+            <div style="font-size:2rem;">🧘</div>
+            <div style="flex:1;">
+              <div class="settings-header">Profil Relax</div>
+              <div class="settings-desc">Confort et sérénité</div>
+              <div style="font-size:.75rem;color:var(--text3);margin-top:6px;">
+                • Police grande • Espacement spacieux • Animations douces
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;color:var(--text2);">→</div>
+          </div>
+        </div>
+
+        <!-- Profil Gaming -->
+        <div class="settings-card settings-profile" onclick="applyProfile('gaming')">
+          <div style="display:flex;gap:12px;">
+            <div style="font-size:2rem;">🎮</div>
+            <div style="flex:1;">
+              <div class="settings-header">Profil Gaming</div>
+              <div class="settings-desc">Performance & réactivité</div>
+              <div style="font-size:.75rem;color:var(--text3);margin-top:6px;">
+                • Mode compact • Animations minimales • Sons distinctifs
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;color:var(--text2);">→</div>
+          </div>
+        </div>
+
+        <!-- Profil Personnalisé -->
+        <div class="settings-card settings-profile" onclick="saveProfile()">
+          <div style="display:flex;gap:12px;">
+            <div style="font-size:2rem;">⭐</div>
+            <div style="flex:1;">
+              <div class="settings-header">💾 Sauvegarder Profil Actuel</div>
+              <div class="settings-desc">Conservez votre configuration personnalisée</div>
+            </div>
+            <div style="display:flex;align-items:center;color:var(--text2);">→</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Pied de page -->
+    <div class="modal-actions" style="border-top:1px solid var(--border);padding-top:16px;margin-top:16px;">
+      <button class="btn-secondary" onclick="resetSettings()">🔄 Réinitialiser</button>
+      <button class="btn-primary" onclick="closeModal('settings-modal')">✓ Fermer</button>
     </div>
   </div>
 </div>
@@ -895,6 +1223,20 @@ window.addEventListener('load', () => {
       }
     });
   }
+  
+  // ✅ Charger TOUS les paramètres personnalisés sauvegardés
+  const fontSize = localStorage.getItem('chat-font-size') || 'medium';
+  const spacing = localStorage.getItem('chat-spacing') || 'normal';
+  const animations = localStorage.getItem('chat-animations') !== '0';
+  const compact = localStorage.getItem('chat-compact-mode') === '1';
+  const vibration = localStorage.getItem('chat-vibration') !== '0';
+  const volume = localStorage.getItem('chat-notification-volume') || '70';
+  
+  window.applyFontSize(fontSize);
+  window.applySpacing(spacing);
+  window.applyAnimations(animations);
+  window.applyCompactMode(compact);
+  notificationVolume = volume;
 });
 // Fermer le menu en cliquant ailleurs
 document.addEventListener('click', (e) => {
@@ -924,6 +1266,365 @@ window.renderColorThemes = () => {
     grid.appendChild(btn);
   });
   updateThemeUI();
+};
+
+// ✅ NOUVEAU: Fonctions de personnalisation AVANCÉES
+let notificationVolume = localStorage.getItem('chat-notification-volume') || '70';
+
+window.openSettingsModal = () => {
+  document.getElementById('settings-modal').classList.add('open');
+  window.loadSettingsUI();
+  window.updateStorageInfo();
+};
+
+window.switchSettingsTab = function(tabName) {
+  // Masquer tous les onglets et leurs contenus
+  document.querySelectorAll('.settings-tab-content').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  document.querySelectorAll('.settings-tab').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Afficher l'onglet et son contenu sélectionnés
+  const contentTab = document.querySelector(`.settings-tab-content[data-tab="${tabName}"]`);
+  const buttonTab = document.querySelector(`.settings-tab[data-tab="${tabName}"]`);
+  
+  if(contentTab) contentTab.classList.add('active');
+  if(buttonTab) buttonTab.classList.add('active');
+  
+  console.log(`[Settings] Switched to tab: ${tabName}`);
+};
+
+window.loadSettingsUI = function() {
+  const fontSize = localStorage.getItem('chat-font-size') || 'medium';
+  const compact = localStorage.getItem('chat-compact-mode') === '1';
+  const animations = localStorage.getItem('chat-animations') !== '0';
+  const sounds = localStorage.getItem('chat-sounds') !== '0';
+  const timeFormat = localStorage.getItem('chat-time-format') || '12h';
+  const spacing = localStorage.getItem('chat-spacing') || 'normal';
+  const customStatus = localStorage.getItem('chat-custom-status') || '';
+  const vibration = localStorage.getItem('chat-vibration') !== '0';
+
+  // Mettre à jour tous les contrôles
+  document.querySelectorAll('.settings-size-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`size-${fontSize}`)?.classList.add('active');
+  
+  document.getElementById('compact-mode').checked = compact;
+  document.getElementById('animations-toggle').checked = animations;
+  document.getElementById('sounds-toggle').checked = sounds;
+  document.getElementById('vibration-toggle').checked = vibration;
+  document.getElementById('custom-status').value = customStatus;
+  document.getElementById('volume-slider').value = notificationVolume;
+  document.getElementById('volume-display').textContent = notificationVolume;
+  
+  document.querySelectorAll('.settings-time-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`time-${timeFormat}`)?.classList.add('active');
+  
+  document.querySelectorAll('.settings-spacing-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`spacing-${spacing}`)?.classList.add('active');
+  
+  window.updateStatusPreview();
+};
+
+window.setFontSize = (size) => {
+  localStorage.setItem('chat-font-size', size);
+  window.applyFontSize(size);
+  document.querySelectorAll('.settings-size-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`size-${size}`)?.classList.add('active');
+  window.notify(`📝 Taille: ${size}`, { type: 'info', duration: 1500, sound: false });
+};
+
+window.applyFontSize = function(size) {
+  const root = document.documentElement;
+  const sizes = { small: '13px', medium: '16px', large: '18px' };
+  root.style.fontSize = sizes[size] || '16px';
+  document.documentElement.style.setProperty('--preview-size', sizes[size]);
+};
+
+window.toggleCompactMode = () => {
+  const isCompact = document.getElementById('compact-mode').checked;
+  localStorage.setItem('chat-compact-mode', isCompact ? '1' : '0');
+  window.applyCompactMode(isCompact);
+  window.notify(isCompact ? '🎯 Mode compact' : '🎯 Mode normal', { type: 'info', duration: 1500, sound: false });
+};
+
+window.applyCompactMode = function(isCompact) {
+  if(isCompact) {
+    document.querySelectorAll('.conv-item').forEach(el => el.style.padding = '8px 8px');
+    document.querySelectorAll('.msg-bubble').forEach(el => el.style.padding = '6px 10px');
+  } else {
+    document.querySelectorAll('.conv-item').forEach(el => el.style.padding = '12px 10px');
+    document.querySelectorAll('.msg-bubble').forEach(el => el.style.padding = '10px 14px');
+  }
+};
+
+window.toggleAnimations = () => {
+  const enabled = document.getElementById('animations-toggle').checked;
+  localStorage.setItem('chat-animations', enabled ? '1' : '0');
+  window.applyAnimations(enabled);
+  window.notify(enabled ? '✨ Animations' : '✨ Pas d\'animations', { type: 'info', duration: 1500, sound: false });
+};
+
+window.applyAnimations = function(enabled) {
+  if(!enabled) {
+    document.body.style.animationDuration = '0s';
+    document.documentElement.style.setProperty('--animate', '0s');
+  } else {
+    document.body.style.animationDuration = '1s';
+    document.documentElement.style.setProperty('--animate', '.3s');
+  }
+};
+
+window.toggleSounds = () => {
+  const enabled = document.getElementById('sounds-toggle').checked;
+  localStorage.setItem('chat-sounds', enabled ? '1' : '0');
+  window.notify(enabled ? '🔔 Sons activés' : '🔇 Sons désactivés', { type: 'info', duration: 1500, sound: false });
+};
+
+window.toggleVibration = () => {
+  const enabled = document.getElementById('vibration-toggle').checked;
+  localStorage.setItem('chat-vibration', enabled ? '1' : '0');
+  window.notify(enabled ? '📳 Vibration' : '📳 Pas de vibration', { type: 'info', duration: 1500, sound: false });
+};
+
+window.setNotificationVolume = (val) => {
+  notificationVolume = val;
+  localStorage.setItem('chat-notification-volume', val);
+  document.getElementById('volume-display').textContent = val;
+};
+
+window.testNotificationSound = () => {
+  const enabled = document.getElementById('sounds-toggle').checked;
+  if(!enabled) {
+    window.notify('🔇 Activez d\'abord les sons', { type: 'warning', duration: 1500 });
+    return;
+  }
+  
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const vol = (notificationVolume / 100) * 0.3;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    gain.gain.setValueAtTime(vol, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    osc.frequency.setValueAtTime(800, audioContext.currentTime);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.5);
+    
+    window.notify('🔊 Son de test', { type: 'success', duration: 1000, sound: false });
+  } catch(e) {
+    console.error('Audio error:', e);
+  }
+};
+
+window.setTimeFormat = (format) => {
+  localStorage.setItem('chat-time-format', format);
+  document.querySelectorAll('.settings-time-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`time-${format}`)?.classList.add('active');
+  window.notify(`⏰ ${format}`, { type: 'info', duration: 1500, sound: false });
+};
+
+window.setSpacing = (spacing) => {
+  localStorage.setItem('chat-spacing', spacing);
+  window.applySpacing(spacing);
+  document.querySelectorAll('.settings-spacing-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`spacing-${spacing}`)?.classList.add('active');
+  window.notify(`📋 ${spacing}`, { type: 'info', duration: 1500, sound: false });
+};
+
+window.applySpacing = function(spacing) {
+  const paddings = { compact: '8px', normal: '12px', spacious: '16px' };
+  document.documentElement.style.setProperty('--item-padding', paddings[spacing] || '12px');
+}
+
+window.updateStatusPreview = function() {
+  const status = document.getElementById('custom-status').value || 'Aucun statut';
+  document.getElementById('status-preview').textContent = `Aperçu: ${status}`;
+};
+
+window.saveCustomStatus = () => {
+  const status = document.getElementById('custom-status').value.trim();
+  localStorage.setItem('chat-custom-status', status);
+  window.updateStatusPreview();
+  window.notify('💬 Statut sauvegardé', { type: 'info', duration: 1500, sound: false });
+};
+
+// PROFILS PRÉDÉFINIS
+const profiles = {
+  work: {
+    name: '💼 Travail',
+    fontSize: 'medium',
+    compact: true,
+    animations: true,
+    sounds: false,
+    timeFormat: '24h',
+    spacing: 'compact',
+    volume: '30'
+  },
+  relax: {
+    name: '🧘 Relax',
+    fontSize: 'large',
+    compact: false,
+    animations: true,
+    sounds: true,
+    timeFormat: '12h',
+    spacing: 'spacious',
+    volume: '50'
+  },
+  gaming: {
+    name: '🎮 Gaming',
+    fontSize: 'small',
+    compact: true,
+    animations: false,
+    sounds: true,
+    timeFormat: '24h',
+    spacing: 'compact',
+    volume: '80'
+  }
+};
+
+window.applyProfile = (profileName) => {
+  const profile = profiles[profileName];
+  if(!profile) return;
+  
+  // Appliquer tous les paramètres du profil
+  setFontSize(profile.fontSize);
+  document.getElementById('compact-mode').checked = profile.compact;
+  document.getElementById('animations-toggle').checked = profile.animations;
+  document.getElementById('sounds-toggle').checked = profile.sounds;
+  setTimeFormat(profile.timeFormat);
+  setSpacing(profile.spacing);
+  setNotificationVolume(profile.volume);
+  
+  toggleCompactMode();
+  toggleAnimations();
+  toggleSounds();
+  
+  window.loadSettingsUI();
+  window.notify(`✅ Profil ${profile.name} appliqué`, { type: 'success', duration: 2000 });
+};
+
+window.saveProfile = () => {
+  const profileName = prompt('Nom du profil personnalisé:');
+  if(!profileName) return;
+  
+  const currentProfile = {
+    fontSize: localStorage.getItem('chat-font-size') || 'medium',
+    compact: localStorage.getItem('chat-compact-mode') === '1',
+    animations: localStorage.getItem('chat-animations') !== '0',
+    sounds: localStorage.getItem('chat-sounds') !== '0',
+    timeFormat: localStorage.getItem('chat-time-format') || '12h',
+    spacing: localStorage.getItem('chat-spacing') || 'normal',
+    volume: notificationVolume
+  };
+  
+  localStorage.setItem(`chat-profile-${profileName}`, JSON.stringify(currentProfile));
+  window.notify(`⭐ Profil "${profileName}" sauvegardé`, { type: 'success', duration: 2000 });
+};
+
+window.exportSettings = () => {
+  const settings = {
+    fontSize: localStorage.getItem('chat-font-size'),
+    compact: localStorage.getItem('chat-compact-mode'),
+    animations: localStorage.getItem('chat-animations'),
+    sounds: localStorage.getItem('chat-sounds'),
+    timeFormat: localStorage.getItem('chat-time-format'),
+    spacing: localStorage.getItem('chat-spacing'),
+    customStatus: localStorage.getItem('chat-custom-status'),
+    volume: notificationVolume,
+    exportDate: new Date().toLocaleString('fr-FR')
+  };
+  
+  const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chat-io-settings-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  window.notify('💾 Paramètres exportés', { type: 'success', duration: 1500 });
+};
+
+window.importSettings = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const settings = JSON.parse(evt.target.result);
+        Object.entries(settings).forEach(([key, value]) => {
+          if(key !== 'exportDate') {
+            localStorage.setItem(`chat-${key}`, value);
+          }
+        });
+        window.loadSettingsUI();
+        window.notify('📂 Paramètres importés', { type: 'success', duration: 1500 });
+      } catch(err) {
+        window.notify('❌ Erreur d\'importation', { type: 'danger', duration: 1500 });
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
+
+window.clearCache = () => {
+  if(!confirm('Effacer tous les paramètres et le cache?')) return;
+  
+  Object.keys(localStorage).forEach(key => {
+    if(key.startsWith('chat-')) localStorage.removeItem(key);
+  });
+  
+  window.location.reload();
+};
+
+window.updateStorageInfo = function() {
+  const settingsCount = Object.keys(localStorage).filter(k => k.startsWith('chat-')).length;
+  document.getElementById('active-settings').textContent = `${settingsCount} paramètres sauvegardés`;
+  
+  try {
+    const estimate = navigator.storage?.estimate?.();
+    if(estimate) {
+      estimate.then(info => {
+        const used = (info.usage / 1024).toFixed(1);
+        document.getElementById('storage-info').textContent = `${used} KB utilisés`;
+      });
+    }
+  } catch(e) {}
+};
+
+window.resetSettings = () => {
+  if(!confirm('Réinitialiser TOUS les paramètres personnalisés?')) return;
+  
+  localStorage.removeItem('chat-font-size');
+  localStorage.removeItem('chat-compact-mode');
+  localStorage.removeItem('chat-animations');
+  localStorage.removeItem('chat-sounds');
+  localStorage.removeItem('chat-time-format');
+  localStorage.removeItem('chat-spacing');
+  localStorage.removeItem('chat-custom-status');
+  localStorage.removeItem('chat-vibration');
+  localStorage.removeItem('chat-notification-volume');
+  
+  window.applyFontSize('medium');
+  window.applyCompactMode(false);
+  window.applyAnimations(true);
+  window.applySpacing('normal');
+  notificationVolume = '70';
+  
+  loadSettingsUI();
+  window.notify('✅ Paramètres réinitialisés', { type: 'info', duration: 2000, sound: false });
 };
 
 /* ══ PASSWORD ══ */
