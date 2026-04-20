@@ -715,13 +715,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAuto-generated-placeholder",
+  apiKey: "AIzaSyBpKHxkops7gzivSx6zwsVolRe34NXsgUA",
   authDomain: "messagerie-cd2ba.firebaseapp.com",
-  databaseURL: "https://messagerie-cd2ba-default-rtdb.europe-west1.firebasedatabase.app/",
+  databaseURL: "https://messagerie-cd2ba-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "messagerie-cd2ba",
-  storageBucket: "messagerie-cd2ba.appspot.com",
+  storageBucket: "messagerie-cd2ba.firebasestorage.app",
   messagingSenderId: "846140280738",
-  appId: "messagerie-cd2ba"
+  appId: "1:846140280738:web:03a0fb23ca8fa0e59bacfb",
+  measurementId: "G-S8CC69WLD4"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -1317,8 +1318,8 @@ async function sendFile(file) {
 // Gestionnaire audio global pour les ringtones et sons
 let globalAudioCtx = null;
 let ringtoneInterval = null;
-let selectedMicDeviceId = null;      // ID du microphone sélectionné
-let selectedSpeakerDeviceId = null;  // ID du haut-parleur sélectionné
+let selectedMicDeviceId = '';        // ID du microphone sélectionné (vide = défaut)
+let selectedSpeakerDeviceId = '';   // ID du haut-parleur sélectionné (vide = défaut)
 let audioDevices = { microphones: [], speakers: [] }; // Cache des appareils
 
 function getAudioCtx() {
@@ -1358,8 +1359,10 @@ async function setMicDevice(deviceId) {
       });
       
       // Remplacer les tracks dans la PeerConnection
-      const oldTrack = localStream.getAudioTracks()[0];
-      const newTrack = newStream.getAudioTracks()[0];
+      const oldTracks = localStream?.getAudioTracks() || [];
+      const oldTrack = oldTracks.length > 0 ? oldTracks[0] : null;
+      const newTracks = newStream?.getAudioTracks() || [];
+      const newTrack = newTracks.length > 0 ? newTracks[0] : null;
       
       if(peerConnection && oldTrack && newTrack) {
         const sender = peerConnection.getSenders().find(s => s.track?.kind === 'audio');
@@ -1367,16 +1370,21 @@ async function setMicDevice(deviceId) {
           await sender.replaceTrack(newTrack);
           console.log('[DEVICES] ✅ Microphone changé avec succès');
           // Arrêter l'ancien
-          oldTrack.stop();
+          if(oldTrack) oldTrack.stop();
           // Mettre à jour le stream local
-          localStream.getAudioTracks().forEach(t => t.stop());
+          oldTracks.forEach(t => { try { t.stop(); } catch(e) {} });
           localStream = newStream;
-          notify('🎤 Microphone changé', { type: 'info', duration: 1500, sound: false });
+          window.notify('🎤 Microphone changé', { type: 'info', duration: 1500, sound: false });
+        } else {
+          newStream.getTracks().forEach(t => { try { t.stop(); } catch(e) {} });
         }
+      } else {
+        newStream.getTracks().forEach(t => { try { t.stop(); } catch(e) {} });
+        console.error('[DEVICES] ❌ Impossible de remplacer le track');
       }
     } catch(e) {
       console.error('[DEVICES] ❌ Erreur changement microphone:', e);
-      notify('❌ Impossible de changer le microphone', { type: 'error', duration: 2000, sound: false });
+      window.notify('❌ Impossible de changer le microphone', { type: 'error', duration: 2000, sound: false });
     }
   }
 }
@@ -1386,21 +1394,24 @@ async function setSpeakerDevice(deviceId) {
   selectedSpeakerDeviceId = deviceId;
   console.log('[DEVICES] 🔊 Haut-parleur sélectionné:', deviceId);
   
-  if(!remoteAudioEl) return;
+  if(!remoteAudioEl) {
+    console.warn('[DEVICES] ⚠️ Pas d\'élément audio distant disponible');
+    return;
+  }
   
   try {
     // Utiliser setSinkId si disponible (Chrome, Edge)
-    if(remoteAudioEl.setSinkId) {
+    if(typeof remoteAudioEl.setSinkId === 'function') {
       await remoteAudioEl.setSinkId(deviceId);
       console.log('[DEVICES] ✅ Sortie audio changée avec succès');
-      notify('🔊 Haut-parleur changé', { type: 'info', duration: 1500, sound: false });
+      window.notify('🔊 Haut-parleur changé', { type: 'info', duration: 1500, sound: false });
     } else {
       console.warn('[DEVICES] ⚠️ setSinkId non supporté sur ce navigateur');
-      notify('⚠️ Changement de sortie non supporté', { type: 'warning', duration: 2000, sound: false });
+      window.notify('⚠️ Changement de sortie non supporté', { type: 'warning', duration: 2000, sound: false });
     }
   } catch(e) {
     console.error('[DEVICES] ❌ Erreur changement haut-parleur:', e);
-    notify('❌ Impossible de changer le haut-parleur', { type: 'error', duration: 2000, sound: false });
+    window.notify('❌ Impossible de changer le haut-parleur', { type: 'error', duration: 2000, sound: false });
   }
 }
 
@@ -1603,6 +1614,10 @@ function createPeerConnection() {
   // ICE candidates — envoi vers Firebase
   pc.onicecandidate = (event) => {
     if(!event.candidate) return;
+    if(!currentUser || !currentUser.id || !currentCallUser) {
+      console.warn('[ICE] ⚠️ currentUser ou currentCallUser non défini');
+      return;
+    }
     const candidateData = {
       candidate: JSON.stringify(event.candidate.toJSON()),
       ts: Date.now()
@@ -1652,33 +1667,52 @@ function startListeningCandidates(fromUserId) {
   }
 
   const processedCandidates = new Set();
+  let isProcessing = false;
 
   iceCandidateUnsubscribe = onValue(
     ref(db, `calls/${fromUserId}/${currentUser.id}/candidates`),
-    async (snap) => {
+    (snap) => {
+      if(isProcessing) return;
       const candidates = snap.val();
       if(!candidates || !peerConnection) return;
 
       // Attendre que remoteDescription soit définie
       if(!peerConnection.remoteDescription) {
         console.log('[ICE] RemoteDescription pas encore prête, mise en attente');
-        pendingCandidates.push(...Object.entries(candidates).map(([id, d]) => ({id, d})));
+        const newCandidates = Object.entries(candidates)
+          .filter(([id]) => !processedCandidates.has(id))
+          .map(([id, d]) => ({id, d}));
+        pendingCandidates.push(...newCandidates);
         return;
       }
 
+      isProcessing = true;
+      const promises = [];
+      
       for(const [id, data] of Object.entries(candidates)) {
         if(processedCandidates.has(id)) continue;
         processedCandidates.add(id);
         try {
           const candidate = JSON.parse(data.candidate);
-          await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-          console.log('[ICE] ✅ Candidate ajouté');
+          const promise = peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
+            .then(() => console.log('[ICE] ✅ Candidate ajouté'))
+            .catch(e => {
+              if(!e.message.includes('Unknown iceCandidate')) {
+                console.warn('[ICE] Erreur candidate:', e.message);
+              }
+            });
+          promises.push(promise);
         } catch(e) {
-          if(!e.message.includes('Unknown iceCandidate')) {
-            console.warn('[ICE] Erreur candidate:', e.message);
-          }
+          console.warn('[ICE] Erreur parsing candidate:', e.message);
         }
       }
+      
+      Promise.all(promises).then(() => {
+        isProcessing = false;
+      }).catch(e => {
+        console.error('[ICE] Erreur traitement candidates:', e);
+        isProcessing = false;
+      });
     }
   );
 }
@@ -1687,13 +1721,25 @@ function startListeningCandidates(fromUserId) {
 async function flushPendingCandidates() {
   if(!pendingCandidates.length || !peerConnection?.remoteDescription) return;
   console.log('[ICE] Flush de', pendingCandidates.length, 'candidates en attente');
-  for(const {d} of pendingCandidates) {
+  
+  const promises = pendingCandidates.map(({d}) => {
     try {
       const candidate = JSON.parse(d.candidate);
-      await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch(e) {}
+      return peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
+        .catch(e => console.warn('[ICE] Erreur candidate en attente:', e.message));
+    } catch(e) {
+      console.warn('[ICE] Erreur parsing candidate en attente:', e);
+      return Promise.resolve();
+    }
+  });
+  
+  try {
+    await Promise.all(promises);
+    pendingCandidates = [];
+    console.log('[ICE] ✅ Toutes les candidates en attente ont été traitées');
+  } catch(e) {
+    console.error('[ICE] Erreur flush candidates:', e);
   }
-  pendingCandidates = [];
 }
 
 function showAudioUnblockButton() {
@@ -1740,10 +1786,10 @@ function startCallDurationTimer() {
 
 // ── INITIER UN APPEL (caller) ──
 window.initiateCall = async function() {
-  if(!currentConvId) { showToast('Sélectionnez une conversation'); return; }
+  if(!currentConvId) { window.showToast('Sélectionnez une conversation'); return; }
   const conv = conversations[currentConvId];
-  if(conv.type !== 'direct') { showToast('Appels disponibles uniquement en conversation directe'); return; }
-  if(callState !== 'idle') { showToast('Un appel est déjà en cours'); return; }
+  if(conv.type !== 'direct') { window.showToast('Appels disponibles uniquement en conversation directe'); return; }
+  if(callState !== 'idle') { window.showToast('Un appel est déjà en cours'); return; }
 
   const otherUserId = Object.keys(conv.members || {}).find(m => m !== currentUser.id);
   if(!otherUserId) return;
@@ -1786,7 +1832,7 @@ window.initiateCall = async function() {
 
     callTimeout = setTimeout(() => {
       if(callState === 'calling') {
-        showToast('❌ Appel non répondu');
+        window.showToast('❌ Appel non répondu');
         window.endCall();
       }
     }, 30000);
@@ -1801,7 +1847,7 @@ window.initiateCall = async function() {
     } else if(e.name === 'NotReadableError') {
       errorMsg = 'Microphone en utilisation par une autre application';
     }
-    showToast('❌ ' + errorMsg);
+    window.showToast('❌ ' + errorMsg);
     callState = 'idle'; 
     currentCallUser = null;
     if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
@@ -1810,7 +1856,11 @@ window.initiateCall = async function() {
 
 function listenForAnswer(toUserId) {
   const answerRef = ref(db, `calls/${toUserId}/${currentUser.id}`);
-  const unsubAnswer = onValue(answerRef, async (snap) => {
+  let unsubscribed = false;
+  
+  const unsubAnswer = onValue(answerRef, (snap) => {
+    if(unsubscribed) return;
+    
     const data = snap.val();
     if(!data) return;
 
@@ -1819,21 +1869,31 @@ function listenForAnswer(toUserId) {
       try {
         const answer = JSON.parse(data.answer);
         console.log('[CALL] Application de la RemoteDescription...');
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-        console.log('[CALL] ✅ RemoteDescription définie avec succès');
-        callState = 'connected';
-
-        // Maintenant on peut commencer à écouter les ICE candidates
-        console.log('[CALL] Écoute des ICE candidates...');
-        startListeningCandidates(toUserId);
-        await flushPendingCandidates();
-
-        unsubAnswer(); // Arrêter d'écouter la réponse
+        
+        // Utilisez setRemoteDescription de manière asynchrone correcte
+        peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+          .then(() => {
+            console.log('[CALL] ✅ RemoteDescription définie avec succès');
+            callState = 'connected';
+            
+            // Maintenant on peut commencer à écouter les ICE candidates
+            console.log('[CALL] Écoute des ICE candidates...');
+            startListeningCandidates(toUserId);
+            return flushPendingCandidates();
+          })
+          .then(() => {
+            unsubscribed = true;
+            unsubAnswer(); // Arrêter d'écouter la réponse
+          })
+          .catch(e => {
+            console.error('[CALL] ❌ Erreur setRemoteDescription:', e.name, '-', e.message);
+          });
       } catch(e) {
-        console.error('[CALL] ❌ Erreur setRemoteDescription:', e.name, '-', e.message);
+        console.error('[CALL] ❌ Erreur parsing answer:', e.message);
       }
     } else if(data.type === 'rejected' || data.type === 'ended') {
-      showToast(data.type === 'rejected' ? '📵 Appel refusé' : '📞 Appel terminé');
+      window.showToast(data.type === 'rejected' ? '📵 Appel refusé' : '📞 Appel terminé');
+      unsubscribed = true;
       unsubAnswer();
       window.endCall();
     }
@@ -1854,7 +1914,7 @@ window.handleIncomingCall = async function(fromUserId, callData) {
   const callerName = allUsers[fromUserId]?.name || 'Utilisateur';
 
   startRingtone();
-  notify('📞 Appel entrant', { message: `de ${callerName}`, type: 'info', icon: '📞', duration: 0, sound: false });
+  window.notify('📞 Appel entrant', { message: `de ${callerName}`, type: 'info', icon: '📞', duration: 0, sound: false });
   showCallUI(fromUserId, 'incoming');
   updateCallStatus(`📞 ${callerName} vous appelle…`);
 
@@ -1870,6 +1930,13 @@ window.handleIncomingCall = async function(fromUserId, callData) {
 window.acceptCall = async function() {
   if(callState !== 'incoming' || !window._pendingOffer) return;
   const { fromUserId, offerData } = window._pendingOffer;
+  if(!offerData || !offerData.offer) {
+    console.error('[ANSWER] ❌ Offre invalide ou manquante');
+    window.showToast('❌ Erreur : offre invalide');
+    window.endCall();
+    return;
+  }
+  
   window._pendingOffer = null;
   stopRingtone();
   updateCallStatus('Connexion en cours…');
@@ -1915,7 +1982,7 @@ window.acceptCall = async function() {
 
   } catch(e) {
     console.error('[ANSWER] ❌ Erreur:', e.name, '-', e.message);
-    showToast('❌ Erreur de connexion: ' + e.message);
+    window.showToast('❌ Erreur de connexion: ' + e.message);
     window.endCall();
   }
 };
@@ -1938,7 +2005,7 @@ window.toggleMute = function() {
     btn.classList.toggle('muted', !track.enabled);
     btn.title = track.enabled ? 'Couper le micro' : 'Activer le micro';
   }
-  notify(track.enabled ? '🎤 Micro activé' : '🔇 Micro coupé', { type: 'info', duration: 1500, sound: false });
+  window.notify(track.enabled ? '🎤 Micro activé' : '🔇 Micro coupé', { type: 'info', duration: 1500, sound: false });
 };
 
 // ✅ NOUVEAU: Gestion du sélecteur d'appareil
@@ -2072,7 +2139,7 @@ window.endCall = function() {
   if(overlay) overlay.classList.remove('visible');
 
   if(callDuration > 5) {
-    notify('📞 Appel terminé', { message: `Durée : ${formatDuration(callDuration)}`, type: 'info', duration: 3000, sound: false });
+    window.notify('📞 Appel terminé', { message: `Durée : ${formatDuration(callDuration)}`, type: 'info', duration: 3000, sound: false });
   }
 };
 
